@@ -8,13 +8,8 @@ var receiver = [1,2];
 var reflect = 1;
 
 ///////////////////////////////////////FUNCTION DECLARATION///////////////////////////////
-/*function RIR_estimation(room,source,receiver){
-    for (i=0,i<(room.vertex).length,i++){
-    mirror_source(room.vertex[i],source);
-    }
-}*/
 
-function mirror_source(edge,source){
+function mirror_source(edge,source){                       
     if (edge.x_a == edge.x_b){
         x_out = source[0]  + 2 * (edge.x_a - source[0]);
         y_out = source[1];
