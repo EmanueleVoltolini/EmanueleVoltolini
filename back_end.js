@@ -51,7 +51,7 @@ function intersection(edge,point_a,point_b){
         }
         else if (edge.y_a == edge.y_b){             //case AB is vertical and edge is horizontal
             if (point_a[0]<= Math.max(edge.x_a,edge.x_b) && point_a[0]>= Math.min(edge.x_a,edge.x_b)){
-                return 1;
+                return [x_int,y_int];
             }
             else{return 0}
         }
@@ -66,7 +66,7 @@ function intersection(edge,point_a,point_b){
         }
         else if (edge.x_a == edge.x_b){             //case AB is horizontal and edge is vertical
             if (point_a[1]<= Math.max(edge.y_a,edge.y_b) && point_a[1]>= Math.min(edge.y_a,edge.y_b)){
-                return 1;
+                return [x_int,y_int];
             }
             else{return 0}
         }
@@ -84,7 +84,7 @@ function intersection(edge,point_a,point_b){
         y_int = m_ab * x_int + q_ab;
     }          
     if((Math.min(edge.x_a,edge.x_b)<=x_int && Math.max(edge.x_a,edge.x_b)>=x_int)||(Math.min(edge.y_a,edge.y_b)<=y_int && Math.max(edge.y_a,edge.y_b)>=y_int)){
-        return 1;
+        return [x_int,y_int];
     }
     else{
         return 0;
