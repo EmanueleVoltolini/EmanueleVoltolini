@@ -1,15 +1,26 @@
 ///////////////////////////////////////VARIABLE DECLARATION/////////////////////////////////
 
 var edge = {x_a:0, y_a:0, x_b:3, y_b:3 ,reflect:1};
+var my_room = {
+	name: "Stanza di Orland",
+	points: [{x:0,y:0},{x:10,y:0},{x:10,y:10},{x:0,y:10},{x:0,y:0}],
+	edges: [
+		{x_a:0, y_a:0, x_b:10,y_b:0, reflect : 0.1},
+		{x_a:10,y_a:0, x_b:10,y_b:10,reflect : 0.5},
+		{x_a:10,y_a:10,x_b:0, y_b:10,reflect : 0.5},
+		{x_a:0, y_a:10,x_b:0, y_b:0, reflect : 0.5}
+	]
+}
 var start = 0;
 var zoom = 0;
-var source = [2,1];
+var real_source = [2,1];
 var receiver = [1,2];
 var reflect = 1;
+var N_iter = 4;
 
 ///////////////////////////////////////FUNCTION DECLARATION///////////////////////////////
 
-function mirror_source(edge,source){                       
+function mirror_point(edge,source){                       
     if (edge.x_a == edge.x_b){
         x_out = source[0]  + 2 * (edge.x_a - source[0]);
         y_out = source[1];
@@ -26,6 +37,24 @@ function mirror_source(edge,source){
     var y_out = source[1] - (x_out - source[0])/m;
     }
     return [x_out,y_out]
+}
+
+function mirror_segment(segment,mirror){
+    var mirror_segment;
+    var p_a = mirror_point(mirror, [segment.x_a,segment.y_a]);
+    var p_b = mirror_point(mirror, [segment.x_b,segment.y_b]);
+    mirror_segment = {x_a: p_a[0],y_a: p_a[1],x_b: p_b[0],reflect: segment.reflect};
+    return mirror_segment
+}
+
+function mirror_room(room,edge){
+    var mirror_edge;
+    var m_room = [];
+    for(i=0;i<room.edges;i++){
+        mirror_edge = mirror_segment(room.edges[i],edge);
+        m_room.push(mirror_edge);
+    }
+    return {edges: m_room}
 }
 
 function intersection(edge,point_a,point_b){
@@ -90,3 +119,21 @@ function intersection(edge,point_a,point_b){
         return 0;
     }
 }
+
+function RIR_iteration(room,source,receiver){
+    room = my_room;
+    source = real_source;
+    var virtual_sources = [];
+    var virt_source;
+    var virt_room;
+    virtual_sources.push({source,room});
+    for (i=1;i<=N_iter;i++){
+        for(j=0;j<room.edges.length;j++){
+            virt_source = mirror_point(room.edges[j],source);
+            virt_room = mirror_room(room,room.edges[j]);
+            virtual_sources.push({virt_source,virt_room});
+        }
+        
+    }
+}
+
