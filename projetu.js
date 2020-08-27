@@ -45,7 +45,8 @@ function render_schermata(idx){
         open_editor();
     }
     if (idx==2){
-        schermata_3.style.display = "inline";
+		schermata_3.style.display = "inline";
+		setup_simulation();
     }
     if (idx==3){
         schermata_4.style.display = "inline";
@@ -277,14 +278,16 @@ function save_room(){
 
 //RIR SIM CONTROLLER
 function setup_simulation(){
+	room_names_container.style.display = "inline";
 	saved_rooms.forEach(create_buttons);
 }
 function create_buttons(obj,idx){
 	this_div = document.createElement('div');
 	this_div.innerHTML = obj.name;
-	this_div.classlist.add("room_name");
+	this_div.classList.add("room_name");
 	room_names_container.appendChild(this_div);
 	this_div.onclick = function(){
 		room = saved_rooms[idx];
+		room_names_container.style.display = "none";
 	}
 }
