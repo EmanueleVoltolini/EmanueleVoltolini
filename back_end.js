@@ -20,7 +20,9 @@ var N_iter = 4;
 
 ///////////////////////////////////////FUNCTION DECLARATION///////////////////////////////
 
-function mirror_point(edge,source){                       
+function mirror_point(edge,source){    
+    var x_out;
+    var y_out;                   
     if (edge.x_a == edge.x_b){
         x_out = source[0]  + 2 * (edge.x_a - source[0]);
         y_out = source[1];
@@ -30,11 +32,13 @@ function mirror_point(edge,source){
         y_out = source[1] - 2 * (source[1] - edge.y_a);
     }
     else{
-    var m = ((edge.y_b - edge.y_a)/(edge.x_b - edge.x_a));
-    var q = edge.y_a - m * edge.x_a;
-    var dist = Math.abs(source[1] - (m*source[0] + q)) / Math.sqrt(1 + Math.pow(m,2));
-    var x_out = source[0] + 2 * dist / (Math.sqrt(1 + 1/Math.pow(m,2)));
-    var y_out = source[1] - (x_out - source[0])/m;
+    var m = (edge.y_b - edge.y_a)/(edge.x_b - edge.x_a);
+    var q = (edge.x_b * edge.y_a - edge.x_a * edge.y_b)/(edge.x_b - edge.x_a);
+    var q_perp = source[1] + (1/m) * source[0];
+    var x_int = (q_perp - q)/(m + 1/m);
+    var y_int = m * x_int + q;
+    x_out = source[0] + 2 * (x_int - source[0]);
+    y_out = source[1] - 2 * (source[1] - y_int);
     }
     return [x_out,y_out]
 }
@@ -43,14 +47,14 @@ function mirror_segment(segment,mirror){
     var mirror_segment;
     var p_a = mirror_point(mirror, [segment.x_a,segment.y_a]);
     var p_b = mirror_point(mirror, [segment.x_b,segment.y_b]);
-    mirror_segment = {x_a: p_a[0],y_a: p_a[1],x_b: p_b[0],reflect: segment.reflect};
+    mirror_segment = {x_a: p_a[0],y_a: p_a[1],x_b: p_b[0],y_b: p_b[1],reflect: segment.reflect};
     return mirror_segment
 }
 
 function mirror_room(room,edge){
     var mirror_edge;
     var m_room = [];
-    for(i=0;i<room.edges;i++){
+    for(i=0;i<room.edges.length;i++){
         mirror_edge = mirror_segment(room.edges[i],edge);
         m_room.push(mirror_edge);
     }
