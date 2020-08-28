@@ -280,6 +280,8 @@ function save_room(){
 function setup_simulation(){
 	room_names_container.style.display = "inline";
 	saved_rooms.forEach(create_buttons);
+	RIR_canvas.height = window.innerHeight-20;
+	RIR_canvas.width  = window.innerWidth -20;
 }
 function create_buttons(obj,idx){
 	this_div = document.createElement('div');
@@ -291,3 +293,58 @@ function create_buttons(obj,idx){
 		room_names_container.style.display = "none";
 	}
 }
+
+//RIR SIM RENDER
+var ctx_rir = RIR_canvas.getContext("2d");
+
+var x_center = Math.round(window.innerWidth/2);			//
+var y_center = Math.round(window.innerHeight/2);		// FIXME!
+var scale = 10;											//
+
+function render_all(virtual_sources){
+	var extremes = {x_max:0,x_min:0,y_max:0,y_min:0};
+	for (j=0;j<virtual_sources.length;j++){ //evaluate center and scaling factor
+		this_list = virtual_sources[j];
+		for (k=0;k<this_list.length;k++){
+			this_VS = this_list[k];
+			//check for max/min x/y
+		}
+	}
+	//set scale_factor/center
+	for (j=0;j<virtual_sources.length;j++){ //evaluate center and scaling factor
+		this_list = virtual_sources[j];
+		for (k=0;k<this_list.length;k++){
+			this_VS = this_list[k];
+			render_room(this_VS,"red");
+		}
+	}
+}
+
+function render_room(room_,color){
+	var N = room_.edges.length;
+	ctx_rir.fillStyle = color;
+	ctx_rir.globalAlpha = 0.5;
+	ctx_rir.beginPath();
+	ctx_rir.moveTo(room_.points[0].x*scale+x_center,room_.points[0].y*scale+y_center);
+	for (i=0;i<N;i++){
+		ctx_rir.lineTo(room_.points[i+1].x*scale+x_center,room_.points[i+1].y*scale+y_center);
+	}
+	ctx_rir.closePath();
+	ctx_rir.fill();
+}
+function render_receiver(x,y){
+	ctx_rir.moveTo(x+x_center,y+y_center+5);
+	ctx_rir.beginPath();
+	ctx_rir.arc(x+x_center,y+y_center+5,5,0,2*Math.PI);
+	ctx_rir.stroke();
+}
+function render_source(x,y){
+	ctx_rir.drawImage(dino,x+x_center,y+y_center);
+}
+
+/*TODO LIST
+
+-contorni delle room
+-scaling function e offset
+
+*/
