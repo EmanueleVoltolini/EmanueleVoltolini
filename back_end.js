@@ -16,7 +16,7 @@ var zoom = 0;
 var real_source = [2,1];
 var receiver = [1,2];
 var reflect = 1;
-var N_iter = 4;
+var N_iter = 3;
 
 ///////////////////////////////////////FUNCTION DECLARATION///////////////////////////////
 
@@ -125,19 +125,32 @@ function intersection(edge,point_a,point_b){
 }
 
 function RIR_iteration(room,source,receiver){
-    room = my_room;
-    source = real_source;
+    room = my_room;//prova del codice
+    source = real_source;//prova codice
     var virtual_sources = [];
+    var this_iteration =[];
     var virt_source;
     var virt_room;
-    virtual_sources.push({source,room});
-    for (i=1;i<=N_iter;i++){
-        for(j=0;j<room.edges.length;j++){
-            virt_source = mirror_point(room.edges[j],source);
-            virt_room = mirror_room(room,room.edges[j]);
-            virtual_sources.push({virt_source,virt_room});
-        }
-        
+    var reflect_edge;
+    var virt_length;
+    virtual_sources.push([{source: source,room: room, edge: -1}]);
+    for (idx=1;idx <= N_iter;idx++){
+        virt_length = virtual_sources[idx-1].length;
+        for(n=0;n<virt_length;n++){
+            room = virtual_sources[idx-1][n].room;
+            source = virtual_sources[idx-1][n].source;
+            reflect_edge = virtual_sources[idx-1][n].edge;
+            for(j=0;j<room.edges.length;j++){
+                if(reflect_edge != j){    
+                    virt_source = mirror_point(room.edges[j],source);
+                    virt_room = mirror_room(room,room.edges[j]);
+                    this_iteration.push({source: virt_source,room: virt_room, edge: j});
+                }
+            }
+        }  
+        virtual_sources.push(this_iteration);  
+        this_iteration = [];
     }
+    return virtual_sources;
 }
 
