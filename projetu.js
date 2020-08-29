@@ -8,10 +8,12 @@ var my_room = {
 		{x_a:0, y_a:0, x_b:10,y_b:0, reflect : 0.1},
 		{x_a:10,y_a:0, x_b:10,y_b:10,reflect : 0.5},
 		{x_a:10,y_a:10,x_b:0, y_b:10,reflect : 0.5},
-		{x_a:0, y_a:10,x_b:0, y_b:0, reflect : 0.5}
+		{x_a:0, y_a:10,x_b:0, y_b:0, reflect : 0.9}
 	]
 }
 saved_rooms = [my_room];
+my_virt = [[{room:my_room,source:{x:5,y:5}}]];
+receiver = {x:1,y:1};
 ///////////////////////////////////////////////////////////////////////////
 
 var schermata_attuale = 0;
@@ -298,53 +300,73 @@ function create_buttons(obj,idx){
 var ctx_rir = RIR_canvas.getContext("2d");
 
 var x_center = Math.round(window.innerWidth/2);			//
-var y_center = Math.round(window.innerHeight/2);		// FIXME!
+var y_center = Math.round(window.innerHeight/2);		// scaling variables init
 var scale = 10;											//
 
 function render_all(virtual_sources){
-	var extremes = {x_max:0,x_min:0,y_max:0,y_min:0};
-	for (j=0;j<virtual_sources.length;j++){ //evaluate center and scaling factor
+	var extremes = {x_max:0,x_min:0,y_max:0,y_min:0}; //evaluate center and scaling factor
+	for (j=0;j<virtual_sources.length;j++){
 		this_list = virtual_sources[j];
 		for (k=0;k<this_list.length;k++){
 			this_VS = this_list[k];
-			//check for max/min x/y
+			this_VS.room.points.forEach(function (obj){//check for max/min x/y
+				if (obj.x > extremes.x_max){extremes.x_max = obj.x;}
+				if (obj.x < extremes.x_min){extremes.x_min = obj.x;}
+				if (obj.y > extremes.y_max){extremes.y_max = obj.y;}
+				if (obj.y < extremes.y_min){extremes.y_max = obj.y;}
+			})
+			
 		}
 	}
 	//set scale_factor/center
-	for (j=0;j<virtual_sources.length;j++){ //evaluate center and scaling factor
+	drawWidth = extremes.x_max - extremes.x_min;
+	drawHeight = extremes.y_max - extremes.y_min;
+	scale = Math.floor(Math.min(window.innerHeight/drawHeight,window.innerWidth/drawWidth)*0.8);
+	x_center = Math.round(window.innerWidth/2) - scale*Math.round(drawWidth/2);
+	y_center = Math.round(window.innerHeight/2) - scale*Math.round(drawHeight/2);
+	//actual render
+	for (j=0;j<virtual_sources.length;j++){
 		this_list = virtual_sources[j];
 		for (k=0;k<this_list.length;k++){
 			this_VS = this_list[k];
-			render_room(this_VS,"red");
+			render_room(this_VS.room,"red");
+			render_source(this_VS.source.x,this_VS.source.y);
 		}
 	}
+	render_receiver(receiver.x,receiver.y);
 }
 
 function render_room(room_,color){
 	var N = room_.edges.length;
 	ctx_rir.fillStyle = color;
-	ctx_rir.globalAlpha = 0.5;
+	ctx_rir.globalAlpha = 1;
 	ctx_rir.beginPath();
 	ctx_rir.moveTo(room_.points[0].x*scale+x_center,room_.points[0].y*scale+y_center);
 	for (i=0;i<N;i++){
 		ctx_rir.lineTo(room_.points[i+1].x*scale+x_center,room_.points[i+1].y*scale+y_center);
+		ctx_rir.lineWidth = 10*room_.edges[i].reflect;
+		ctx_rir.stroke();
 	}
 	ctx_rir.closePath();
+	ctx_rir.globalAlpha = 0.5;
 	ctx_rir.fill();
 }
 function render_receiver(x,y){
-	ctx_rir.moveTo(x+x_center,y+y_center+5);
+	ctx_rir.globalAlpha = 1;
+	ctx_rir.moveTo(scale*x+x_center,scale*y+y_center+5);
 	ctx_rir.beginPath();
-	ctx_rir.arc(x+x_center,y+y_center+5,5,0,2*Math.PI);
+	ctx_rir.arc(scale*x+x_center,scale*y+y_center+5,5,0,2*Math.PI);
 	ctx_rir.stroke();
+	ctx_rir.fillStyle = "black";
+	ctx_rir.fill();
 }
 function render_source(x,y){
-	ctx_rir.drawImage(dino,x+x_center,y+y_center);
+	ctx_rir.globalAlpha = 1;
+	ctx_rir.drawImage(dino,scale*x+x_center,scale*y+y_center);
 }
 
 /*TODO LIST
 
 -contorni delle room
--scaling function e offset
-
+-ondine del dinosauro
 */
