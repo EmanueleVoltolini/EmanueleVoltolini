@@ -306,25 +306,29 @@ var scale = 10;											//
 
 function render_all(virtual_sources){
 	var extremes = {x_max:0,x_min:0,y_max:0,y_min:0}; //evaluate center and scaling factor
-	for (j=0;j<virtual_sources.length;j++){
-		this_list = virtual_sources[j];
-		for (k=0;k<this_list.length;k++){
-			this_VS = this_list[k];
-			this_VS.room.points.forEach(function (obj){//check for max/min x/y
-				if (obj.x > extremes.x_max){extremes.x_max = obj.x;}
-				if (obj.x < extremes.x_min){extremes.x_min = obj.x;}
-				if (obj.y > extremes.y_max){extremes.y_max = obj.y;}
-				if (obj.y < extremes.y_min){extremes.y_max = obj.y;}
+	for (ja=0;ja<virtual_sources.length;ja++){
+		this_list = virtual_sources[ja];
+		for (ka=0;ka<this_list.length;ka++){
+			this_VS = this_list[ka];
+			this_VS.room.edges.forEach(function (obj){//check for max/min x/y
+				if (obj.x_a > extremes.x_max){extremes.x_max = obj.x_a;}
+				if (obj.x_a < extremes.x_min){extremes.x_min = obj.x_a;}
+				if (obj.y_a > extremes.y_max){extremes.y_max = obj.y_a;}
+				if (obj.y_a < extremes.y_min){extremes.y_min = obj.y_a;}
+				if (obj.x_b > extremes.x_max){extremes.x_max = obj.x_b;}
+				if (obj.x_b < extremes.x_min){extremes.x_min = obj.x_b;}
+				if (obj.y_b > extremes.y_max){extremes.y_max = obj.y_b;}
+				if (obj.y_b < extremes.y_min){extremes.y_min = obj.y_b;}
 			})
-			
 		}
 	}
 	//set scale_factor/center
 	drawWidth = extremes.x_max - extremes.x_min;
 	drawHeight = extremes.y_max - extremes.y_min;
-	scale = Math.floor(Math.min(window.innerHeight/drawHeight,window.innerWidth/drawWidth)*0.8);
-	x_center = Math.round(window.innerWidth/2) - scale*Math.round(drawWidth/2);
-	y_center = Math.round(window.innerHeight/2) - scale*Math.round(drawHeight/2);
+	scale = Math.floor(Math.min(window.innerHeight/drawHeight,window.innerWidth/drawWidth)*0.95);
+
+	x_center = Math.round(window.innerWidth/2 - scale*(extremes.x_max + extremes.x_min)/2);
+	y_center = Math.round(window.innerHeight/2 - scale*(extremes.y_max + extremes.y_min)/2);
 	//actual render
 	for (j=0;j<virtual_sources.length;j++){
 		this_list = virtual_sources[j];
@@ -342,9 +346,9 @@ function render_room(room_,color){
 	ctx_rir.fillStyle = color;
 	ctx_rir.globalAlpha = 1;
 	ctx_rir.beginPath();
-	ctx_rir.moveTo(room_.points[0].x*scale+x_center,room_.points[0].y*scale+y_center);
+	ctx_rir.moveTo(room_.edges[0].x_a*scale+x_center,room_.edges[0].y_a*scale+y_center);
 	for (i=0;i<N;i++){
-		ctx_rir.lineTo(room_.points[i+1].x*scale+x_center,room_.points[i+1].y*scale+y_center);
+		ctx_rir.lineTo(room_.edges[i].x_a*scale+x_center,room_.edges[i].y_a*scale+y_center);
 		ctx_rir.lineWidth = 10*room_.edges[i].reflect;
 		ctx_rir.stroke();
 	}
