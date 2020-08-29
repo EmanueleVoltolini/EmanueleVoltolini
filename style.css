@@ -1,0 +1,43 @@
+.schermata{
+    display : none;
+}
+
+.selector{
+    width : 200px;
+    height : 100px;
+    border-radius : 20%;
+    margin : 10%;
+    display : inline-block;
+    background-color: grey;
+    text-align : center;
+}
+
+#schermata_1{
+    display : inline;
+}
+
+#canvas{
+    background-color:#fff;
+    display:block;
+    position:absolute;
+    margin:auto;
+    top:5px;
+    left:5px;
+    border:1px solid #ccc;
+} 
+#refl_container{
+    position: absolute;
+}
+.room_name{
+    background-color : red;
+}
+
+#RIR_canvas{
+    background-color:#fff;
+    display:block;
+    position:absolute;
+    margin:auto;
+    top:5px;
+    left:5px;
+    border:1px solid #ccc;
+} 
