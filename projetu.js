@@ -12,8 +12,8 @@ var my_room = {
 	]
 }
 saved_rooms = [my_room];
-var real_source = [2,1];
-var N_iter = 3;
+var real_source = [5,7];
+var N_iter = 0;
 receiver = {x:1,y:1};
 ///////////////////////////////////////////////////////////////////////////
 
@@ -270,6 +270,7 @@ function save_room(){
 	}
 	
 	/// SOMEHOW PUSH TO DATABASE
+	my_room = room; //DEBUG
 
 	schermata_attuale = 0;
 	render_schermata(schermata_attuale);
@@ -285,6 +286,7 @@ function setup_simulation(){
 	saved_rooms.forEach(create_buttons);
 	RIR_canvas.height = window.innerHeight-20;
 	RIR_canvas.width  = window.innerWidth -20;
+	render_all(RIR_iteration(my_room,real_source,0));
 }
 function create_buttons(obj,idx){
 	this_div = document.createElement('div');
@@ -325,36 +327,36 @@ function render_all(virtual_sources){
 	//set scale_factor/center
 	drawWidth = extremes.x_max - extremes.x_min;
 	drawHeight = extremes.y_max - extremes.y_min;
-	scale = Math.floor(Math.min(window.innerHeight/drawHeight,window.innerWidth/drawWidth)*0.95);
+	scale = Math.floor(Math.min(RIR_canvas.height/drawHeight,RIR_canvas.width/drawWidth)*0.95);
 
-	x_center = Math.round(window.innerWidth/2 - scale*(extremes.x_max + extremes.x_min)/2);
-	y_center = Math.round(window.innerHeight/2 - scale*(extremes.y_max + extremes.y_min)/2);
+	x_center = Math.round(RIR_canvas.width/2 - scale*(extremes.x_max + extremes.x_min)/2);
+	y_center = Math.round(RIR_canvas.height/2 - scale*(extremes.y_max + extremes.y_min)/2);
 	//actual render
 	for (j=0;j<virtual_sources.length;j++){
 		this_list = virtual_sources[j];
 		for (k=0;k<this_list.length;k++){
 			this_VS = this_list[k];
-			render_room(this_VS.room,"red");
+			render_room(this_VS.room,this_VS.source,"red");
 			render_source(this_VS.source.x,this_VS.source.y);
 		}
 	}
 	render_receiver(receiver.x,receiver.y);
 }
-
-function render_room(room_,color){
+function render_room(room_,source_,color){
 	var N = room_.edges.length;
 	ctx_rir.fillStyle = color;
 	ctx_rir.globalAlpha = 1;
 	ctx_rir.beginPath();
 	ctx_rir.moveTo(room_.edges[0].x_a*scale+x_center,room_.edges[0].y_a*scale+y_center);
 	for (i=0;i<N;i++){
-		ctx_rir.lineTo(room_.edges[i].x_a*scale+x_center,room_.edges[i].y_a*scale+y_center);
-		ctx_rir.lineWidth = 10*room_.edges[i].reflect;
+		ctx_rir.lineTo(room_.edges[i].x_b*scale+x_center,room_.edges[i].y_b*scale+y_center);
+		ctx_rir.lineWidth = Math.round(10*room_.edges[i].reflect);
 		ctx_rir.stroke();
 	}
 	ctx_rir.closePath();
 	ctx_rir.globalAlpha = 0.5;
 	ctx_rir.fill();
+	render_source(source_[0],source_[1]);
 }
 function render_receiver(x,y){
 	ctx_rir.globalAlpha = 1;
@@ -369,11 +371,28 @@ function render_source(x,y){
 	ctx_rir.globalAlpha = 1;
 	ctx_rir.drawImage(dino,scale*x+x_center,scale*y+y_center);
 }
+function clear_canvas(){
+	ctx_rir.clearRect(0, 0, RIR_canvas.width, RIR_canvas.height);
+}
+
+//RIR SIM CONTROLLER
+function prev_iter(){
+	clear_canvas();
+	N_iter--;
+	render_all(RIR_iteration(my_room,real_source,0)); //FIXME
+}
+function next_iter(){
+	clear_canvas();
+	N_iter++;
+	render_all(RIR_iteration(my_room,real_source,0)); //FIXME
+}
 
 /*TODO LIST
 
--contorni delle room
+-contorni delle room REFLECTIVITY!
 -ondine del dinosauro
+-
+
 */
 
 ///////////////////////////////////////////////////////////////////////////
