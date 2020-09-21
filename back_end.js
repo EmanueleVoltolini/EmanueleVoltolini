@@ -124,27 +124,52 @@ function intersection(edge,point_a,point_b){
     }
 }
 
-function RIR_iteration(room,source,receiver){
+function RIR_iteration_room(room,source,receiver){
     room = my_room;//prova del codice
     source = real_source;//prova codice
-    var virtual_sources = [];
+    var virtual_sources_room = [];
     var this_iteration =[];
     var virt_source;
     var virt_room;
     var reflect_edge;
     var virt_length;
-    virtual_sources.push([{source: source,room: room, edge: -1}]);
+    virtual_sources_room.push([{source: source,room: room, edge: -1}]);
     for (idx=1;idx <= N_iter;idx++){
-        virt_length = virtual_sources[idx-1].length;
+        virt_length = virtual_sources_room[idx-1].length;
         for(n=0;n<virt_length;n++){
-            room = virtual_sources[idx-1][n].room;
-            source = virtual_sources[idx-1][n].source;
-            reflect_edge = virtual_sources[idx-1][n].edge;
+            room = virtual_sources_room[idx-1][n].room;
+            source = virtual_sources_room[idx-1][n].source;
+            reflect_edge = virtual_sources_room[idx-1][n].edge;
             for(j=0;j<room.edges.length;j++){
                 if(reflect_edge != j){    
                     virt_source = mirror_point(room.edges[j],source);
                     virt_room = mirror_room(room,room.edges[j]);
                     this_iteration.push({source: virt_source,room: virt_room, edge: j});
+                }
+            }
+        }  
+        virtual_sources_room.push(this_iteration);  
+        this_iteration = [];
+    }
+    return virtual_sources_room;
+}
+
+function RIR_iteration_source(room,source,receiver){
+    var virtual_sources = [];
+    var this_iteration =[];
+    var virt_source;
+    var reflect_edge;
+    var virt_length;
+    virtual_sources.push([{source: source, edge: -1, parent : null}]);
+    for (idx=1;idx <= N_iter;idx++){
+        virt_length = virtual_sources[idx-1].length;
+        for(n=0;n<virt_length;n++){
+            source = virtual_sources[idx-1][n].source;
+            reflect_edge = virtual_sources[idx-1][n].edge;
+            for(j=0;j<room.edges.length;j++){
+                if(reflect_edge != j){    
+                    virt_source = mirror_point(room.edges[j],source);
+                    this_iteration.push({source: virt_source, edge: j, parent: source});
                 }
             }
         }  

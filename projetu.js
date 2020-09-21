@@ -7,8 +7,8 @@ var my_room = {
 	edges: [
 		{x_a:0, y_a:0, x_b:10,y_b:0, reflect : 0.1},
 		{x_a:10,y_a:0, x_b:10,y_b:10,reflect : 0.5},
-		{x_a:10,y_a:10,x_b:0, y_b:10,reflect : 0.5},
-		{x_a:0, y_a:10,x_b:0, y_b:0, reflect : 0.9}
+		{x_a:10,y_a:10,x_b:0, y_b:10,reflect : 0.7},
+		{x_a:0, y_a:10,x_b:0, y_b:0, reflect : 1}
 	]
 }
 saved_rooms = [my_room];
@@ -524,6 +524,32 @@ function RIR_iteration(room,source,receiver){
                     virt_source = mirror_point(room.edges[j],source);
                     virt_room = mirror_room(room,room.edges[j]);
                     this_iteration.push({source: virt_source,room: virt_room, edge: j});
+                }
+            }
+        }  
+        virtual_sources.push(this_iteration);  
+        this_iteration = [];
+    }
+    return virtual_sources;
+}
+
+function RIR_iteration_source(room,source,receiver){
+    var virtual_sources = [];
+    var this_iteration =[];
+    var virt_source;
+    var reflect_edge;
+    var virt_length;
+    virtual_sources.push([{source: source, edge: -1, parent : null, audible: false, attenuation: 1}]);
+    for (idx=1;idx <= N_iter;idx++){
+        virt_length = virtual_sources[idx-1].length;
+        for(n=0;n<virt_length;n++){
+            source = virtual_sources[idx-1][n].source;
+            reflect_edge = virtual_sources[idx-1][n].edge;
+            for(j=0;j<room.edges.length;j++){
+                if(reflect_edge != j){    
+					virt_source = mirror_point(room.edges[j],source);
+					atten = virtual_sources[idx-1][n].attenuation * room.edges[j].reflect
+                    this_iteration.push({source: virt_source, edge: j, parent: virtual_sources[idx-1][n],audible: false, attenuation: atten});
                 }
             }
         }  
