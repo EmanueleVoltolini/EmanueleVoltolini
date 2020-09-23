@@ -11,11 +11,8 @@ var my_room = {
 		{x_a:0, y_a:10,x_b:0, y_b:0, reflect : 0.5}
 	]
 }
-var start = 0;
-var zoom = 0;
 var real_source = [2,1];
 var receiver = [1,2];
-var reflect = 1;
 var N_iter = 3;
 
 ///////////////////////////////////////FUNCTION DECLARATION///////////////////////////////
@@ -156,44 +153,3 @@ function RIR_iteration(room,source,receiver){
     return virtual_sources;
 }
 
-
-function RIR_iteration_source(room,source,receiver){
-    var virtual_sources = [];
-    var this_iteration =[];
-    var virt_source;
-    var reflect_edge;
-    var virt_length;
-    virtual_sources.push([{source: source, edge: -1, parent : null, audible: true, attenuation: 1}]);
-    for (idx=1;idx <= N_iter;idx++){
-        virt_length = virtual_sources[idx-1].length;
-        for(n=0;n<virt_length;n++){
-            source = virtual_sources[idx-1][n].source;
-            reflect_edge = virtual_sources[idx-1][n].edge;
-            for(j=0;j<room.edges.length;j++){
-                if(reflect_edge != j){    
-					virt_source = mirror_point(room.edges[j],source);
-					atten = virtual_sources[idx-1][n].attenuation * room.edges[j].reflect
-                    this_iteration.push({source: virt_source, edge: j, parent: virtual_sources[idx-1][n],audible: true, attenuation: atten});
-                }
-            }
-        }  
-        virtual_sources.push(this_iteration);  
-        this_iteration = [];
-    }
-
-//  virtual_sources = audibility_check(room, virtual_sources, receiver)
-
-    return virtual_sources;
-}
-
-function audibility_check(room,virtual_sources,receiver){
-    for(q=0;q<room.edges.length;q++){
-        if (intersection(room.edges[q],virtual_sources[0][0].source,receiver) != 0){
-            virtual_sources[0][0].audible = false;
-        };
-    }
-    for(g=virtual_sources.length;g>1;g-1){
-        
-    }
-    return virtual_sources
-}
