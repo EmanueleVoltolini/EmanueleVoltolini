@@ -84,7 +84,8 @@ function intersection(edge,point_a,point_b){
         }
         else if (edge.y_a == edge.y_b){             //case AB is vertical and edge is horizontal
             if (point_a[0]<= Math.max(edge.x_a,edge.x_b) && point_a[0]>= Math.min(edge.x_a,edge.x_b)){
-                return [x_int,y_int];
+                x_int = point_a[0];
+                y_int = edge.y_a;
             }
             else{return 0}
         }
@@ -99,7 +100,8 @@ function intersection(edge,point_a,point_b){
         }
         else if (edge.x_a == edge.x_b){             //case AB is horizontal and edge is vertical
             if (point_a[1]<= Math.max(edge.y_a,edge.y_b) && point_a[1]>= Math.min(edge.y_a,edge.y_b)){
-                return [x_int,y_int];
+                x_int = edge.x_a;
+                y_int = point_a[1];
             }
             else{return 0}
         }
@@ -116,7 +118,7 @@ function intersection(edge,point_a,point_b){
         x_int = (q_ab - q_edge)/(m_edge - m_ab);
         y_int = m_ab * x_int + q_ab;
     }          
-    if((Math.min(edge.x_a,edge.x_b)<=x_int && Math.max(edge.x_a,edge.x_b)>=x_int)||(Math.min(edge.y_a,edge.y_b)<=y_int && Math.max(edge.y_a,edge.y_b)>=y_int)){
+    if((Math.min(edge.x_a,edge.x_b)<=x_int && Math.max(edge.x_a,edge.x_b)>=x_int)&&(Math.min(edge.y_a,edge.y_b)<=y_int && Math.max(edge.y_a,edge.y_b)>=y_int)){
         return [x_int,y_int];
     }
     else{
@@ -154,3 +156,44 @@ function RIR_iteration(room,source,receiver){
     return virtual_sources;
 }
 
+
+function RIR_iteration_source(room,source,receiver){
+    var virtual_sources = [];
+    var this_iteration =[];
+    var virt_source;
+    var reflect_edge;
+    var virt_length;
+    virtual_sources.push([{source: source, edge: -1, parent : null, audible: true, attenuation: 1}]);
+    for (idx=1;idx <= N_iter;idx++){
+        virt_length = virtual_sources[idx-1].length;
+        for(n=0;n<virt_length;n++){
+            source = virtual_sources[idx-1][n].source;
+            reflect_edge = virtual_sources[idx-1][n].edge;
+            for(j=0;j<room.edges.length;j++){
+                if(reflect_edge != j){    
+					virt_source = mirror_point(room.edges[j],source);
+					atten = virtual_sources[idx-1][n].attenuation * room.edges[j].reflect
+                    this_iteration.push({source: virt_source, edge: j, parent: virtual_sources[idx-1][n],audible: true, attenuation: atten});
+                }
+            }
+        }  
+        virtual_sources.push(this_iteration);  
+        this_iteration = [];
+    }
+
+//  virtual_sources = audibility_check(room, virtual_sources, receiver)
+
+    return virtual_sources;
+}
+
+function audibility_check(room,virtual_sources,receiver){
+    for(q=0;q<room.edges.length;q++){
+        if (intersection(room.edges[q],virtual_sources[0][0].source,receiver) != 0){
+            virtual_sources[0][0].audible = false;
+        };
+    }
+    for(g=virtual_sources.length;g>1;g-1){
+        
+    }
+    return virtual_sources
+}
