@@ -56,14 +56,16 @@ function intersection(edge,point_a,point_b){
     var q_edge;
     var m_edge;
     //check the case when the edge is vertical
-    if (edge.x_a == edge.x_b && (point_a[0] != point_b[0] || point_a[1] != point_b[1])){
+    if (edge.x_a == edge.x_b && (point_a[0] != point_b[0] || point_a[1] != point_b[1]) && (Math.max(point_a[0],point_b[0])>edge.x_a) && (Math.min(point_a[0],point_b[0])<edge.x_a)){
         x_int = edge.x_a;
         y_int = (point_b[1] - point_a[1]) * ((x_int - point_a[0])/(point_b[0] - point_a[0])) + point_a[1];
+        return [x_int,y_int];
     }
     //check the case when the edge is horizontal
-    else if (edge.y_a == edge.y_b && (point_a[0] != point_b[0] || point_a[1] != point_b[1])){
+    else if (edge.y_a == edge.y_b && (point_a[0] != point_b[0] || point_a[1] != point_b[1]) && Math.max(point_a[1],point_b[1])>edge.y_a && Math.min(point_a[1],point_b[1])<edge.y_a){
         y_int = edge.y_a;
         x_int = (point_b[0] - point_a[0]) * ((y_int - point_a[1])/(point_b[1] - point_a[1])) + point_a[0];
+        return [x_int,y_int];
     }
     else if (point_a[0] == point_b[0]){             //case in which the segment AB is vertical
         if (edge.x_a == edge.x_b){                  //case parallel segments
@@ -105,7 +107,7 @@ function intersection(edge,point_a,point_b){
         x_int = (q_ab - q_edge)/(m_edge - m_ab);
         y_int = m_ab * x_int + q_ab;
     }          
-    if((Math.min(edge.x_a,edge.x_b)<=x_int && Math.max(edge.x_a,edge.x_b)>=x_int)&&(Math.min(edge.y_a,edge.y_b)<=y_int && Math.max(edge.y_a,edge.y_b)>=y_int)){
+    if((Math.min(edge.x_a,edge.x_b)<=x_int && Math.max(edge.x_a,edge.x_b)>=x_int)&&(Math.min(edge.y_a,edge.y_b)<=y_int && Math.max(edge.y_a,edge.y_b)>=y_int && x_int && y_int)){
         return [x_int,y_int];
     }
     else{
@@ -164,11 +166,17 @@ function audibility_check(room,v_sources,receiver){
                 if ( b_inter!= 0){
                     a_inter = intersection(room.edges[prev_edge],b_inter,s_prev);
                     if ( a_inter==0){
-                        //DA CONTROLLARE PROBABILMENTE SBAGLIATO FACCIO UN CONTROLLO INUTILE (CODICE PRECEDENTE)
+                        //CODICE PRECEDENTE
                         v_sources[g][l].audible = false;
                     }
                 }
                 else{
+                    console.log(prev_edge);
+                    console.log('gay');
+                    console.log(b_inter);
+                    console.log('doppio_gay');
+                    console.log([g,l]);
+                    console.log('triplo_gay');
                     v_sources[g][l].audible = false;
                 };
             }
@@ -177,7 +185,7 @@ function audibility_check(room,v_sources,receiver){
     return v_sources
 }
 
-
+                        //CODICE PRECEDENTE
                         //DA CONTROLLARE PROBABILMENTE SBAGLIATO FACCIO UN CONTROLLO INUTILE
                         /*for(q=0;q<room.edges.length;q++){
                             if (intersection(room.edges[q],a_inter,receiver) != 0 && v_sources[g][l].audible != false){
