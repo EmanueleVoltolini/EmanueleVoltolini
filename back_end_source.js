@@ -171,12 +171,6 @@ function audibility_check(room,v_sources,receiver){
                     }
                 }
                 else{
-                    console.log(prev_edge);
-                    console.log('gay');
-                    console.log(b_inter);
-                    console.log('doppio_gay');
-                    console.log([g,l]);
-                    console.log('triplo_gay');
                     v_sources[g][l].audible = false;
                 };
             }
