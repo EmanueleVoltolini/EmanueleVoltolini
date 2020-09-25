@@ -30,8 +30,10 @@
     RIR SIMULATION
     LOAD ROOM
     <canvas id=RIR_canvas></canvas>
-    <button class = "buttons" onclick = prev_iter()>PREVIOUS</button>
-    <button class = "buttons" onclick = next_iter()>NEXT</button>
+    <div class='buttoncontainer'>
+        <button class = "buttons" onclick = prev_iter()>PREVIOUS</button>
+        <button class = "buttons" onclick = next_iter()>NEXT</button>
+    </div>
 </div>
 
 <div class = schermata id = schermata_4>
@@ -47,8 +49,12 @@
     METODO SARTI
     <canvas id=RIR_canvas2></canvas>
     <canvas id=RIR_canvas3></canvas>
-    <button class = "buttons" onclick = prev_iter_source()>PREVIOUS</button>
-    <button class = "buttons" onclick = next_iter_source()>NEXT</button>
+    <div class='buttoncontainer'>
+        <button class = "buttons" onclick = prev_iter_source()>PREVIOUS</button>
+        <button class = "buttons" onclick = next_iter_source()>NEXT</button>
+        <button id='pathbutton' class = "buttons" onclick = show_hide_path()>SHOW PATHS</button>
+        <button class = "buttons" onclick = toggle_animation()>ANIMATION</button>
+    </div>
 </div>
 
 <img src= "source.png" id="dino"></img>

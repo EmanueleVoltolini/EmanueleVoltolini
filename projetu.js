@@ -296,12 +296,12 @@ function setup_simulation(){
 }
 function prev_iter(){
 	N_iter--;
-	big_rir_sim = audibility_check(my_room,RIR_iteration(my_room,real_source,0),receiver);
+	big_rir_sim = RIR_iteration(my_room,real_source,0);
 	render_all(big_rir_sim);
 }
 function next_iter(){
 	N_iter++;
-	big_rir_sim = audibility_check(my_room,RIR_iteration(my_room,real_source,0),receiver);
+	big_rir_sim = RIR_iteration(my_room,real_source,0);
 	render_all(big_rir_sim);
 }
 
@@ -386,6 +386,8 @@ function render_source(x,y){
 
 //RIR SIM DATA OBJECT
 var big_rir_sim;
+var show_path = false;
+var animations = false;
 
 //RIR SIM CONTROLLER
 function setup_simulation2(){
@@ -393,17 +395,36 @@ function setup_simulation2(){
 	RIR_canvas2.width  = window.innerWidth -20;
 	RIR_canvas3.height = window.innerHeight-20;
 	RIR_canvas3.width  = window.innerWidth -20;
-	render_all_source(RIR_iteration_source(my_room,real_source,[receiver.x,receiver.y]));
+	RIR_canvas3.style.display = "none";
+	big_rir_sim = RIR_iteration_source(my_room,real_source,[receiver.x,receiver.y])
+	render_all_source(big_rir_sim);
+	draw_path(big_rir_sim,receiver);
 }
 function prev_iter_source(){
 	N_iter--;
 	big_rir_sim = RIR_iteration_source(my_room,real_source,[receiver.x,receiver.y]);
 	render_all_source(big_rir_sim);
+	draw_path(big_rir_sim,receiver);
 }
 function next_iter_source(){	
 	N_iter++;
 	big_rir_sim = RIR_iteration_source(my_room,real_source,[receiver.x,receiver.y]);
 	render_all_source(big_rir_sim);
+	draw_path(big_rir_sim,receiver);
+}
+function show_hide_path(){
+	show_path = !show_path;
+	if (show_path){
+		pathbutton.innerHTML = "HIDE PATHS";
+		RIR_canvas3.style.display = "";
+	}
+	else {
+		pathbutton.innerHTML = "SHOW PATHS";
+		RIR_canvas3.style.display = "none";
+	}
+}
+function toggle_animation(){
+	animations = !animations;
 }
 
 //RIR SIM RENDER
@@ -514,6 +535,24 @@ function draw_line(edge){
 	}
 	ctx_rir2.closePath();
 }
+function draw_path(virtual_sources,receiver){
+	ctx_rir3.clearRect(0, 0, RIR_canvas2.width, RIR_canvas2.height);
+	ctx_rir3.beginPath();
+	ctx_rir3.strokeStyle = 'yellow';
+	ctx_rir3.moveTo(receiver.x*scale+x_center,receiver.y*scale+y_center);
+	for (ij=0;ij<virtual_sources.length;ij++){
+		this_list = virtual_sources[ij];
+		for (ik=0;ik<this_list.length;ik++){
+			this_VS = this_list[ik].source;//array
+			if (this_VS.audible){ctx_rir3.strokeStyle = 'yellow';}
+			else {ctx_rir3.strokeStyle = 'grey';}
+			ctx_rir3.moveTo(receiver.x*scale+x_center,receiver.y*scale+y_center);//go to receiver
+			ctx_rir3.lineTo(this_VS[0]*scale+x_center,this_VS[1]*scale+y_center);//line to source
+			ctx_rir3.stroke();
+		}
+	}
+	ctx_rir3.closePath();
+}
 
 /*TODO LIST
 
@@ -549,7 +588,6 @@ function mirror_point(edge,source){
     }
     return [x_out,y_out]
 }
-
 function mirror_segment(segment,mirror){
     var mirror_segment;
     var p_a = mirror_point(mirror, [segment.x_a,segment.y_a]);
@@ -557,7 +595,6 @@ function mirror_segment(segment,mirror){
     mirror_segment = {x_a: p_a[0],y_a: p_a[1],x_b: p_b[0],y_b: p_b[1],reflect: segment.reflect};
     return mirror_segment
 }
-
 function intersection(edge,point_a,point_b){
     var y_int;
     var x_int;
@@ -624,7 +661,6 @@ function intersection(edge,point_a,point_b){
         return 0;
     }
 }
-
 function RIR_iteration_source(room,source,receiver){
     var virtual_sources = [];
     var this_iteration =[];
@@ -653,7 +689,6 @@ function RIR_iteration_source(room,source,receiver){
 
     return virtual_sources;
 }
-
 function audibility_check(room,v_sources,receiver){
     var s = [];
     var s_prev = [];
@@ -695,8 +730,6 @@ function audibility_check(room,v_sources,receiver){
     }
     return v_sources
 }
-
-
 function mirror_room(room,edge){
     var mirror_edge;
     var m_room = [];
@@ -706,7 +739,6 @@ function mirror_room(room,edge){
     }
     return {edges: m_room}
 }
-
 function RIR_iteration(room,source,receiver){
     var virtual_sources = [];
     var this_iteration =[];
