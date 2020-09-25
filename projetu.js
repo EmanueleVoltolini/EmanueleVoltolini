@@ -12,9 +12,9 @@ var my_room = {
 	]
 }
 saved_rooms = [my_room];
-var real_source = [5,7];
+var real_source = [2,1];
 var N_iter = 0;
-receiver = {x:1,y:1};
+receiver = {x:1,y:2};
 ///////////////////////////////////////////////////////////////////////////
 
 var schermata_attuale = 0;
@@ -391,16 +391,16 @@ var big_rir_sim;
 function setup_simulation2(){
 	RIR_canvas2.height = window.innerHeight-20;
 	RIR_canvas2.width  = window.innerWidth -20;
-	render_all_source(RIR_iteration_source(my_room,real_source,0));
+	render_all_source(RIR_iteration_source(my_room,real_source,[receiver.x,receiver.y]));
 }
 function prev_iter_source(){
 	N_iter--;
-	big_rir_sim = audibility_check(my_room,RIR_iteration_source(my_room,real_source,0),receiver)
+	big_rir_sim = RIR_iteration_source(my_room,real_source,[receiver.x,receiver.y]);
 	render_all_source(big_rir_sim);
 }
 function next_iter_source(){	
 	N_iter++;
-	big_rir_sim = audibility_check(my_room,RIR_iteration_source(my_room,real_source,0),receiver);
+	big_rir_sim = RIR_iteration_source(my_room,real_source,[receiver.x,receiver.y]);
 	render_all_source(big_rir_sim);
 }
 
@@ -555,16 +555,6 @@ function mirror_segment(segment,mirror){
     return mirror_segment
 }
 
-function mirror_room(room,edge){
-    var mirror_edge;
-    var m_room = [];
-    for(i=0;i<room.edges.length;i++){
-        mirror_edge = mirror_segment(room.edges[i],edge);
-        m_room.push(mirror_edge);
-    }
-    return {edges: m_room}
-}
-
 function intersection(edge,point_a,point_b){
     var y_int;
     var x_int;
@@ -630,34 +620,6 @@ function intersection(edge,point_a,point_b){
     else{
         return 0;
     }
-}
-
-function RIR_iteration(room,source,receiver){
-    var virtual_sources = [];
-    var this_iteration =[];
-    var virt_source;
-    var virt_room;
-    var reflect_edge;
-    var virt_length;
-    virtual_sources.push([{source: source,room: room, edge: -1}]);
-    for (idx=1;idx <= N_iter;idx++){
-        virt_length = virtual_sources[idx-1].length;
-        for(n=0;n<virt_length;n++){
-            room = virtual_sources[idx-1][n].room;
-            source = virtual_sources[idx-1][n].source;
-            reflect_edge = virtual_sources[idx-1][n].edge;
-            for(j=0;j<room.edges.length;j++){
-                if(reflect_edge != j){    
-                    virt_source = mirror_point(room.edges[j],source);
-                    virt_room = mirror_room(room,room.edges[j]);
-                    this_iteration.push({source: virt_source,room: virt_room, edge: j});
-                }
-            }
-        }  
-        virtual_sources.push(this_iteration);  
-        this_iteration = [];
-    }
-    return virtual_sources;
 }
 
 function RIR_iteration_source(room,source,receiver){
@@ -729,4 +691,43 @@ function audibility_check(room,v_sources,receiver){
         }
     }
     return v_sources
+}
+
+
+function mirror_room(room,edge){
+    var mirror_edge;
+    var m_room = [];
+    for(i=0;i<room.edges.length;i++){
+        mirror_edge = mirror_segment(room.edges[i],edge);
+        m_room.push(mirror_edge);
+    }
+    return {edges: m_room}
+}
+
+function RIR_iteration(room,source,receiver){
+    var virtual_sources = [];
+    var this_iteration =[];
+    var virt_source;
+    var virt_room;
+    var reflect_edge;
+    var virt_length;
+    virtual_sources.push([{source: source,room: room, edge: -1}]);
+    for (idx=1;idx <= N_iter;idx++){
+        virt_length = virtual_sources[idx-1].length;
+        for(n=0;n<virt_length;n++){
+            room = virtual_sources[idx-1][n].room;
+            source = virtual_sources[idx-1][n].source;
+            reflect_edge = virtual_sources[idx-1][n].edge;
+            for(j=0;j<room.edges.length;j++){
+                if(reflect_edge != j){    
+                    virt_source = mirror_point(room.edges[j],source);
+                    virt_room = mirror_room(room,room.edges[j]);
+                    this_iteration.push({source: virt_source,room: virt_room, edge: j});
+                }
+            }
+        }  
+        virtual_sources.push(this_iteration);  
+        this_iteration = [];
+    }
+    return virtual_sources;
 }
