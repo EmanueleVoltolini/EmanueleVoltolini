@@ -282,42 +282,32 @@ function save_room(){
 
 ///////////////////////////////////////////////////////////////////////////
 ////////////////////////////////RIR SIM FRONTEND///////////////////////////
+////////////////////////////////METODO ORLANDYNO///////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
 //RIR SIM CONTROLLER
 function setup_simulation(){
-	room_names_container.style.display = "inline";
-	saved_rooms.forEach(create_buttons);//DEBUG
 	RIR_canvas.height = window.innerHeight-20;
 	RIR_canvas.width  = window.innerWidth -20;
 	render_all(RIR_iteration(my_room,real_source,0));
 }
-function setup_simulation2(){
-	RIR_canvas2.height = window.innerHeight-20;
-	RIR_canvas2.width  = window.innerWidth -20;
-	render_all_source(RIR_iteration_source(my_room,real_source,0));
+function prev_iter(){
+	N_iter--;
+	render_all(RIR_iteration(my_room,real_source,0)); //FIXME
 }
-function create_buttons(obj,idx){///Serve ancora?
-	this_div = document.createElement('div');
-	this_div.innerHTML = obj.name;
-	this_div.classList.add("room_name");
-	room_names_container.appendChild(this_div);
-	this_div.onclick = function(){
-		room = saved_rooms[idx];
-		room_names_container.style.display = "none";
-	}
+function next_iter(){	
+	N_iter++;
+	render_all(RIR_iteration(my_room,real_source,0)); //FIXME
 }
 
 //RIR SIM RENDER
 var ctx_rir = RIR_canvas.getContext("2d");
-var ctx_rir2 = RIR_canvas2.getContext("2d");
-
 var x_center = Math.round(window.innerWidth/2);			//
 var y_center = Math.round(window.innerHeight/2);		// scaling variables init
 var scale = 10;											//
 
 function render_all(virtual_sources){
-	clear_canvas(ctx_rir);
+	clear_canvas();
 	var extremes = {x_max:0,x_min:0,y_max:0,y_min:0}; //evaluate center and scaling factor
 	for (ja=0;ja<virtual_sources.length;ja++){
 		this_list = virtual_sources[ja];
@@ -353,7 +343,65 @@ function render_all(virtual_sources){
 	}
 	render_receiver(receiver.x,receiver.y);
 }
+function render_room(room_,source_,color){
+	var N = room_.edges.length;
+	ctx_rir.fillStyle = color;
+	ctx_rir.globalAlpha = 1;
+	ctx_rir.beginPath();
+	ctx_rir.moveTo(room_.edges[0].x_a*scale+x_center,room_.edges[0].y_a*scale+y_center);
+	for (i=0;i<N;i++){
+		ctx_rir.lineTo(room_.edges[i].x_b*scale+x_center,room_.edges[i].y_b*scale+y_center);
+		ctx_rir.lineWidth = Math.round(20*room_.edges[i].reflect) + 'px';
+		ctx_rir.stroke();
+	}
+	ctx_rir.closePath();
+	ctx_rir.globalAlpha = 0.5;
+	ctx_rir.fill();
+	render_source(source_[0],source_[1]);
+}
+function render_receiver(x,y){
+	ctx_rir.globalAlpha = 1;
+	ctx_rir.moveTo(scale*x+x_center,scale*y+y_center+5);
+	ctx_rir.beginPath();
+	ctx_rir.arc(scale*x+x_center,scale*y+y_center+5,5,0,2*Math.PI);
+	ctx_rir.stroke();
+	ctx_rir.fillStyle = "black";
+	ctx_rir.fill();
+	ctx_rir.closePath();
+}
+function render_source(x,y){
+	ctx_rir.globalAlpha = 1;
+	ctx_rir.drawImage(dino,scale*x+x_center,scale*y+y_center);
+}
+
+///////////////////////////////////////////////////////////////////////////
+////////////////////////////////RIR SIM FRONTEND///////////////////////////
+//////////////////////////////////METODO SARTI/////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+
+//RIR SIM CONTROLLER
+function setup_simulation2(){
+	RIR_canvas2.height = window.innerHeight-20;
+	RIR_canvas2.width  = window.innerWidth -20;
+	render_all_source(RIR_iteration_source(my_room,real_source,0));
+}
+function prev_iter_source(){
+	N_iter--;
+	render_all_source(RIR_iteration_source(my_room,real_source,0)); //FIXME
+}
+function next_iter_source(){	
+	N_iter++;
+	render_all_source(RIR_iteration_source(my_room,real_source,0)); //FIXME
+}
+
+//RIR SIM RENDER
+var ctx_rir2 = RIR_canvas2.getContext("2d");
+var x_center = Math.round(window.innerWidth/2);			//
+var y_center = Math.round(window.innerHeight/2);		// scaling variables init
+var scale = 10;											//
+
 function render_all_source(virtual_sources){
+	clear_canvas();
 	var extremes = {x_max:0,x_min:0,y_max:0,y_min:0}; //evaluate center and scaling factor
 	my_room.edges.forEach(function(obj){
 		if (obj.x_a>extremes.x_max){extremes.x_max = obj.x_a;}
@@ -382,6 +430,7 @@ function render_all_source(virtual_sources){
 	y_center = Math.round(RIR_canvas2.height/2 - scale*(extremes.y_max + extremes.y_min)/2);
 	//actual render
 	render_room2(my_room,virtual_sources[0][0].source,"red");
+	my_room.edges.forEach(draw_line);
 	for (j=0;j<virtual_sources.length;j++){
 		this_list = virtual_sources[j];
 		for (k=0;k<this_list.length;k++){
@@ -391,22 +440,6 @@ function render_all_source(virtual_sources){
 	}
 	render_receiver2(receiver.x,receiver.y);
 }
-function render_room(room_,source_,color){
-	var N = room_.edges.length;
-	ctx_rir.fillStyle = color;
-	ctx_rir.globalAlpha = 1;
-	ctx_rir.beginPath();
-	ctx_rir.moveTo(room_.edges[0].x_a*scale+x_center,room_.edges[0].y_a*scale+y_center);
-	for (i=0;i<N;i++){
-		ctx_rir.lineTo(room_.edges[i].x_b*scale+x_center,room_.edges[i].y_b*scale+y_center);
-		ctx_rir.lineWidth = Math.round(10*room_.edges[i].reflect);
-		ctx_rir.stroke();
-	}
-	ctx_rir.closePath();
-	ctx_rir.globalAlpha = 0.5;
-	ctx_rir.fill();
-	render_source(source_[0],source_[1]);
-}
 function render_room2(room_,source_,color){
 	var N = room_.edges.length;
 	ctx_rir2.fillStyle = color;
@@ -415,7 +448,7 @@ function render_room2(room_,source_,color){
 	ctx_rir2.moveTo(room_.edges[0].x_a*scale+x_center,room_.edges[0].y_a*scale+y_center);
 	for (i=0;i<N;i++){
 		ctx_rir2.lineTo(room_.edges[i].x_b*scale+x_center,room_.edges[i].y_b*scale+y_center);
-		ctx_rir2.lineWidth = Math.round(10*room_.edges[i].reflect);
+		ctx_rir2.lineWidth = Math.round(20*room_.edges[i].reflect) + 'px';
 		ctx_rir2.stroke();
 	}
 	ctx_rir2.closePath();
@@ -423,52 +456,56 @@ function render_room2(room_,source_,color){
 	ctx_rir2.fill();
 	render_source2(source_[0],source_[1]);
 }
-function render_receiver(x,y){
-	ctx_rir.globalAlpha = 1;
-	ctx_rir.moveTo(scale*x+x_center,scale*y+y_center+5);
-	ctx_rir.beginPath();
-	ctx_rir.arc(scale*x+x_center,scale*y+y_center+5,5,0,2*Math.PI);
-	ctx_rir.stroke();
-	ctx_rir.fillStyle = "black";
-	ctx_rir.fill();
-}
 function render_receiver2(x,y){
 	ctx_rir2.globalAlpha = 1;
+	ctx_rir2.strokeStyle = 'black';
 	ctx_rir2.moveTo(scale*x+x_center,scale*y+y_center+5);
 	ctx_rir2.beginPath();
 	ctx_rir2.arc(scale*x+x_center,scale*y+y_center+5,5,0,2*Math.PI);
 	ctx_rir2.stroke();
 	ctx_rir2.fillStyle = "black";
 	ctx_rir2.fill();
-}
-function render_source(x,y){
-	ctx_rir.globalAlpha = 1;
-	ctx_rir.drawImage(dino,scale*x+x_center,scale*y+y_center);
+	ctx_rir2.closePath();
 }
 function render_source2(x,y){
 	ctx_rir2.globalAlpha = 1;
 	ctx_rir2.drawImage(dino,scale*x+x_center,scale*y+y_center);
 }
-function clear_canvas(ctx_){
-	ctx_.clearRect(0, 0, RIR_canvas.width, RIR_canvas.height);
+function clear_canvas(){
+	ctx_rir.clearRect(0, 0, RIR_canvas.width, RIR_canvas.height);
+	ctx_rir2.clearRect(0, 0, RIR_canvas2.width, RIR_canvas2.height);
 }
-
-//RIR SIM CONTROLLER
-function prev_iter(){
-	N_iter--;
-	render_all(RIR_iteration(my_room,real_source,0)); //FIXME
-}
-function next_iter(){
-	
-	N_iter++;
-	render_all(RIR_iteration(my_room,real_source,0)); //FIXME
+function draw_line(edge){
+	ctx_rir2.beginPath();
+	if (Math.abs(edge.x_b - edge.x_a) > Math.abs(edge.y_b - edge.y_a)){// rette "orizzontali"
+		m = (edge.y_b - edge.y_a) / (edge.x_b - edge.x_a);
+		q = edge.y_a - m*edge.x_a;
+		h_0 = q*scale + y_center - (x_center * m);
+		h_end = h_0 + m*RIR_canvas2.width;
+		ctx_rir2.strokeStyle = 'blue';
+		ctx_rir2.lineWidth = '5px';
+		ctx_rir2.moveTo(0,h_0);
+		ctx_rir2.lineTo(RIR_canvas2.width,h_end);
+		ctx_rir2.stroke();
+	}
+	else{// rette "verticali"
+		co_m = (edge.x_b - edge.x_a)/(edge.y_b - edge.y_a);
+		co_q = edge.x_a - co_m*edge.y_a;
+		j_0 = co_q*scale + x_center - (y_center * co_m);
+		j_end = j_0 + co_m*RIR_canvas2.height;
+		ctx_rir2.strokeStyle = 'blue';
+		ctx_rir2.lineWidth = '5px';
+		ctx_rir2.moveTo(j_0,0);
+		ctx_rir2.lineTo(j_end,RIR_canvas2.height);
+		ctx_rir2.stroke();
+	}
+	ctx_rir2.closePath();
 }
 
 /*TODO LIST
 
--ondine del dinosauro
--
-
+-Capire dove si mette la sorgente!!
+-Sistemare FSM con tutte le features
 */
 
 ///////////////////////////////////////////////////////////////////////////
@@ -634,4 +671,3 @@ function RIR_iteration_source(room,source,receiver){
     }
     return virtual_sources;
 }
-
