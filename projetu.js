@@ -391,6 +391,8 @@ var big_rir_sim;
 function setup_simulation2(){
 	RIR_canvas2.height = window.innerHeight-20;
 	RIR_canvas2.width  = window.innerWidth -20;
+	RIR_canvas3.height = window.innerHeight-20;
+	RIR_canvas3.width  = window.innerWidth -20;
 	render_all_source(RIR_iteration_source(my_room,real_source,0));
 }
 function prev_iter_source(){
@@ -406,6 +408,7 @@ function next_iter_source(){
 
 //RIR SIM RENDER
 var ctx_rir2 = RIR_canvas2.getContext("2d");
+var ctx_rir3 = RIR_canvas3.getContext("2d");
 var x_center = Math.round(window.innerWidth/2);			//
 var y_center = Math.round(window.innerHeight/2);		// scaling variables init
 var scale = 10;											//
