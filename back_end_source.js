@@ -167,16 +167,11 @@ function audibility_check(room,v_sources,receiver){
                 if ( b_inter!= 0){
                     a_inter = intersection(room.edges[prev_edge],b_inter,s_prev);
                     if ( a_inter==0){
-                        //CODICE PRECEDENTE
                         v_sources[g][l].audible = false;
-                        console.log(v_sources[g][l]);
-                        console.log('gay');
                     }
                 }
                 else{
                     v_sources[g][l].audible = false;
-                    console.log(v_sources[g][l]);
-                    console.log('gay');
                 };
             }
             else{
@@ -190,14 +185,3 @@ function audibility_check(room,v_sources,receiver){
     }
     return v_sources
 }
-
-                        //CODICE PRECEDENTE
-                        //DA CONTROLLARE PROBABILMENTE SBAGLIATO FACCIO UN CONTROLLO INUTILE
-                        /*for(q=0;q<room.edges.length;q++){
-                            if (intersection(room.edges[q],a_inter,receiver) != 0 && v_sources[g][l].audible != false){
-                                v_sources[g][l].audible = false;
-                            };
-                        else{
-                        v_sources[g][l].audible = false;
-                        }
-                        }*/
