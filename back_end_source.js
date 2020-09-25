@@ -159,6 +159,7 @@ function audibility_check(room,v_sources,receiver){
         for(l=v_sources[g].length-1;l>=0;l--){
             current_edge = v_sources[g][l].edge;
             s = v_sources[g][l].source;
+
             s_prev = v_sources[g][l].parent.source;
             prev_edge = v_sources[g][l].parent.edge;
             b_inter = intersection(room.edges[current_edge],s,receiver);
@@ -168,11 +169,22 @@ function audibility_check(room,v_sources,receiver){
                     if ( a_inter==0){
                         //CODICE PRECEDENTE
                         v_sources[g][l].audible = false;
+                        console.log(v_sources[g][l]);
+                        console.log('gay');
                     }
                 }
                 else{
                     v_sources[g][l].audible = false;
+                    console.log(v_sources[g][l]);
+                    console.log('gay');
                 };
+            }
+            else{
+                for(q=0;q<room.edges.length;q++){
+                    if (intersection(room.edges[q],b_inter,receiver) != 0 && v_sources[g][l].audible != false && q!=current_edge){
+                        v_sources[g][l].audible = false;
+                    }
+                }
             }
         }
     }
