@@ -388,6 +388,11 @@ function render_source(x,y){
 var big_rir_sim;
 var show_path = false;
 var animations = false;
+var animationTimer;
+var animationPhase = 0;
+var prev_status = {};//for zoom management
+var next_status = {};
+var N_frames = 10;
 
 //RIR SIM CONTROLLER
 function setup_simulation2(){
@@ -397,20 +402,36 @@ function setup_simulation2(){
 	RIR_canvas3.width  = window.innerWidth -20;
 	RIR_canvas3.style.display = "none";
 	big_rir_sim = RIR_iteration_source(my_room,real_source,[receiver.x,receiver.y])
+	scale_and_center(big_rir_sim);
 	render_all_source(big_rir_sim);
 	draw_path(big_rir_sim,receiver);
 }
 function prev_iter_source(){
 	N_iter--;
 	big_rir_sim = RIR_iteration_source(my_room,real_source,[receiver.x,receiver.y]);
+	scale_and_center(big_rir_sim);
 	render_all_source(big_rir_sim);
 	draw_path(big_rir_sim,receiver);
 }
-function next_iter_source(){	
+function next_iter_source(){
 	N_iter++;
 	big_rir_sim = RIR_iteration_source(my_room,real_source,[receiver.x,receiver.y]);
-	render_all_source(big_rir_sim);
-	draw_path(big_rir_sim,receiver);
+	animationPhase = 0;
+
+	prev_status.scale = scale;	//SAVE OLD ZOOM STATUS
+	prev_status.x = x_center;
+	prev_status.y = y_center;
+	scale_and_center(big_rir_sim);//SET NEW ZOOM STATUS
+	next_status.scale = scale;	//SAVE NEW ZOOM STATUS
+	next_status.x = x_center;
+	next_status.y = y_center;
+
+	if (animations){animationTimer = setInterval(draw_animation,100);}
+	else{
+		scale_and_center(big_rir_sim);
+		render_all_source(big_rir_sim);
+		draw_path(big_rir_sim,receiver);
+	}
 }
 function show_hide_path(){
 	show_path = !show_path;
@@ -432,11 +453,10 @@ var ctx_rir2 = RIR_canvas2.getContext("2d");
 var ctx_rir3 = RIR_canvas3.getContext("2d");
 var x_center = Math.round(window.innerWidth/2);			//
 var y_center = Math.round(window.innerHeight/2);		// scaling variables init
-var scale = 10;											//
+var scale;											    //
 
-function render_all_source(virtual_sources){
-	clear_canvas();
-	var extremes = {x_max:0,x_min:0,y_max:0,y_min:0}; //evaluate center and scaling factor
+function scale_and_center(virtual_sources){
+	var extremes = {x_max:0,x_min:0,y_max:0,y_min:0};
 	my_room.edges.forEach(function(obj){
 		if (obj.x_a>extremes.x_max){extremes.x_max = obj.x_a;}
 		if (obj.x_a<extremes.x_min){extremes.x_min = obj.x_a;}
@@ -458,11 +478,12 @@ function render_all_source(virtual_sources){
 	//set scale_factor/center
 	drawWidth = extremes.x_max - extremes.x_min;
 	drawHeight = extremes.y_max - extremes.y_min;
-	scale = Math.floor(Math.min(RIR_canvas2.height/drawHeight,RIR_canvas2.width/drawWidth)*0.92);
-
+	scale = Math.min(RIR_canvas2.height/drawHeight,RIR_canvas2.width/drawWidth)*0.92;
 	x_center = Math.round(RIR_canvas2.width/2 - scale*(extremes.x_max + extremes.x_min)/2);
 	y_center = Math.round(RIR_canvas2.height/2 - scale*(extremes.y_max + extremes.y_min)/2);
-	//actual render
+}
+function render_all_source(virtual_sources){
+	clear_canvas();
 	render_room2(my_room,virtual_sources[0][0].source,"red");
 	my_room.edges.forEach(draw_line);
 	for (j=0;j<virtual_sources.length;j++){
@@ -566,6 +587,24 @@ function draw_path(virtual_sources,receiver){
 		}
 	}
 	ctx_rir3.closePath();
+}
+function draw_animation(){
+	//linear interpolations
+	x_center = (1-animationPhase/N_frames)*prev_status.x + (animationPhase/N_frames)*next_status.x;
+	y_center = (1-animationPhase/N_frames)*prev_status.y + (animationPhase/N_frames)*next_status.y;
+	scale = (1-animationPhase/N_frames)*prev_status.scale + (animationPhase/N_frames)*next_status.scale;
+	///start animation
+	old_sim = big_rir_sim.slice(0,big_rir_sim.length-1);
+	render_all_source(old_sim);
+	draw_path(old_sim,receiver);
+	/////end animation
+	if (animationPhase>= N_frames){
+		clearInterval(animationTimer);
+		scale_and_center(big_rir_sim);
+		render_all_source(big_rir_sim);
+		draw_path(big_rir_sim,receiver);
+	}
+	animationPhase++;
 }
 
 /*TODO LIST
