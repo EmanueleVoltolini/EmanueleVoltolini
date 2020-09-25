@@ -538,17 +538,31 @@ function draw_line(edge){
 function draw_path(virtual_sources,receiver){
 	ctx_rir3.clearRect(0, 0, RIR_canvas2.width, RIR_canvas2.height);
 	ctx_rir3.beginPath();
-	ctx_rir3.strokeStyle = 'yellow';
+	ctx_rir3.strokeStyle = 'grey';
 	ctx_rir3.moveTo(receiver.x*scale+x_center,receiver.y*scale+y_center);
 	for (ij=0;ij<virtual_sources.length;ij++){
 		this_list = virtual_sources[ij];
 		for (ik=0;ik<this_list.length;ik++){
-			this_VS = this_list[ik].source;//array
-			if (this_VS.audible){ctx_rir3.strokeStyle = 'yellow';}
-			else {ctx_rir3.strokeStyle = 'grey';}
-			ctx_rir3.moveTo(receiver.x*scale+x_center,receiver.y*scale+y_center);//go to receiver
-			ctx_rir3.lineTo(this_VS[0]*scale+x_center,this_VS[1]*scale+y_center);//line to source
-			ctx_rir3.stroke();
+			this_VS = this_list[ik]
+			if (!this_VS.audible){
+				ctx_rir3.moveTo(receiver.x*scale+x_center,receiver.y*scale+y_center);//go to receiver
+				ctx_rir3.lineTo(this_VS.source[0]*scale+x_center,this_VS.source[1]*scale+y_center);//line to source
+				ctx_rir3.stroke();
+			}
+		}
+	}
+	ctx_rir3.closePath();
+	ctx_rir3.beginPath();
+	ctx_rir3.strokeStyle = 'yellow';
+	for (ij=0;ij<virtual_sources.length;ij++){
+		this_list = virtual_sources[ij];
+		for (ik=0;ik<this_list.length;ik++){
+			this_VS = this_list[ik]
+			if (this_VS.audible){
+				ctx_rir3.moveTo(receiver.x*scale+x_center,receiver.y*scale+y_center);//go to receiver
+				ctx_rir3.lineTo(this_VS.source[0]*scale+x_center,this_VS.source[1]*scale+y_center);//line to source
+				ctx_rir3.stroke();
+			}
 		}
 	}
 	ctx_rir3.closePath();
