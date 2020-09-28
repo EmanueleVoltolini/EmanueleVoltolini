@@ -841,7 +841,6 @@ function time_distance(virt_sources,receiver){
 			dist = point_distance(s,receiver);
 			t = dist/sound_velocity;
 			virt_sources[i][j].time = t + virt_sources[i][j].parent.time;
-			console.log(virt_sources[i][j].time);
 		}
 	}
 	return virt_sources;
