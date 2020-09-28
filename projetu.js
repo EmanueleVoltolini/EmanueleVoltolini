@@ -17,7 +17,9 @@ var N_iter = 0;
 receiver = {x:1,y:2};
 ///////////////////////////////////////////////////////////////////////////
 
+//CONSTANT
 var schermata_attuale = 0;
+var sound_velocity = 340;  // [m/s]
 
 ///////////////////////////////////////////////////////////////////////////
 //////////////////////////////CONTROLLER///////////////////////////////////
@@ -401,7 +403,7 @@ function setup_simulation2(){
 	RIR_canvas3.height = window.innerHeight-20;
 	RIR_canvas3.width  = window.innerWidth -20;
 	RIR_canvas3.style.display = "none";
-	big_rir_sim = RIR_iteration_source(my_room,real_source,[receiver.x,receiver.y])
+	big_rir_sim = RIR_iteration_source(my_room,real_source,[receiver.x,receiver.y]);
 	scale_and_center(big_rir_sim);
 	render_all_source(big_rir_sim);
 	draw_path(big_rir_sim,receiver);
@@ -619,6 +621,14 @@ function draw_animation(){
 
 ///////////////////////////////////////FUNCTION DECLARATION///////////////////////////////
 
+function point_distance(point_a,point_b){
+	var distance;
+	var x = point_a[0] - point_b[0]
+	var y =	point_a[1] - point_b[1];
+	distance = Math.sqrt(Math.pow(x,2) + Math.pow(y,2));
+	return distance;
+}
+
 function mirror_point(edge,source){    
     var x_out;
     var y_out;                   
@@ -720,7 +730,7 @@ function RIR_iteration_source(room,source,receiver){
     var virt_source;
     var reflect_edge;
     var virt_length;
-    virtual_sources.push([{source: source, edge: -1, parent : null, audible: true, attenuation: 1}]);
+    virtual_sources.push([{source: source, edge: -1, parent : null, audible: true, attenuation: 1, time: -1}]);
     for (idx=1;idx <= N_iter;idx++){
         virt_length = virtual_sources[idx-1].length;
         for(n=0;n<virt_length;n++){
@@ -730,7 +740,7 @@ function RIR_iteration_source(room,source,receiver){
                 if(reflect_edge != j){    
 					virt_source = mirror_point(room.edges[j],source);
 					atten = virtual_sources[idx-1][n].attenuation * room.edges[j].reflect
-                    this_iteration.push({source: virt_source, edge: j, parent: virtual_sources[idx-1][n],audible: true, attenuation: atten});
+                    this_iteration.push({source: virt_source, edge: j, parent: virtual_sources[idx-1][n],audible: true, attenuation: atten, time: -1});
                 }
             }
         }  
@@ -738,7 +748,8 @@ function RIR_iteration_source(room,source,receiver){
         this_iteration = [];
     }
 
-    virtual_sources = audibility_check(room, virtual_sources, receiver);
+	virtual_sources = audibility_check(room, virtual_sources, receiver);
+	virtual_sources = time_distance(virtual_sources,receiver);
 
     return virtual_sources;
 }
@@ -818,4 +829,20 @@ function RIR_iteration(room,source,receiver){
         this_iteration = [];
     }
     return virtual_sources;
+}
+function time_distance(virt_sources,receiver){
+	var s;
+	var dist;
+	var t;
+	virt_sources[0][0].time = point_distance(real_source,receiver) / sound_velocity;
+	for(i=1;i<virt_sources.length;i++){
+		for(j=0;j<virt_sources[i].length;j++){
+			s = virt_sources[i][j].source;
+			dist = point_distance(s,receiver);
+			t = dist/sound_velocity;
+			virt_sources[i][j].time = t + virt_sources[i][j].parent.time;
+			console.log(virt_sources[i][j].time);
+		}
+	}
+	return virt_sources;
 }
