@@ -611,6 +611,10 @@ function draw_animation(){
 
 -Capire dove si mette la sorgente!!
 -Sistemare FSM con tutte le features
+	-save
+	-load
+-Sistemare audibility check
+-Animazioni e colori dinosauri
 */
 
 ///////////////////////////////////////////////////////////////////////////
