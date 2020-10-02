@@ -20,9 +20,21 @@
     <div id = "refl_container">
         REFLECTIVITY
         <input type = "range" id = reflectivity_selector></input>
-        <button onclick = "open_editor()">CANCELLA</button>
+        <button onclick = "open_editor()">CANCEL</button>
         <input id=nome_stanza type = "text"></input>
-        <button onclick = "save_room()">SALVA</button>
+        <button onclick = "save_room()">SAVE</button>
+        <br>REAL SOURCE
+        <button>CLICK</button>
+        <div class=coord_container>
+            <input class="coord_input" type="text" id="RS_x_input"></input>
+            <input class="coord_input" type="text" id="RS_y_input"></input>
+        </div>
+        <br>RECEIVER
+        <button>CLICK</button>
+        <div class=coord_container>
+            <input class="coord_input" type="text" id="RS_x_input"></input>
+            <input class="coord_input" type="text" id="RS_y_input"></input>
+        </div>
     </div>
 </div>
 
@@ -57,6 +69,12 @@
     </div>
 </div>
 
-<img src= "source.png" id="dino"></img>
+<img src= "source.png" class="dinos"></img>
+<img src= "source_blue.png" class="dinos"></img>
+<img src= "source_green.png" class="dinos"></img>
+<img src= "source_orange.png" class="dinos"></img>
+<img src= "source_violet.png" class="dinos"></img>
+<img src= "source_water.png" class="dinos"></img>
+<img src= "source_yellow.png" class="dinos"></img>
 
 <script src="projetu.js"></script>

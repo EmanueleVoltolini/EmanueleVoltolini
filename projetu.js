@@ -306,6 +306,7 @@ function next_iter(){
 }
 
 //RIR SIM RENDER
+var dino_images = document.querySelectorAll('.dinos');
 var ctx_rir = RIR_canvas.getContext("2d");
 var x_center = Math.round(window.innerWidth/2);			//
 var y_center = Math.round(window.innerHeight/2);		// scaling variables init
@@ -376,7 +377,7 @@ function render_receiver(x,y){
 }
 function render_source(x,y){
 	ctx_rir.globalAlpha = 1;
-	ctx_rir.drawImage(dino,scale*x+x_center,scale*y+y_center);
+	ctx_rir.drawImage(dino_images[0],scale*x+x_center,scale*y+y_center);
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -449,6 +450,7 @@ function toggle_animation(){
 }
 
 //RIR SIM RENDER
+var dino_images = document.querySelectorAll('.dinos');
 var ctx_rir2 = RIR_canvas2.getContext("2d");
 var ctx_rir3 = RIR_canvas3.getContext("2d");
 var x_center = Math.round(window.innerWidth/2);			//
@@ -490,7 +492,7 @@ function render_all_source(virtual_sources){
 		this_list = virtual_sources[j];
 		for (k=0;k<this_list.length;k++){
 			this_VS = this_list[k];
-			render_source2(this_VS.source[0],this_VS.source[1]);
+			render_source2(this_VS.source[0],this_VS.source[1],j%7);
 		}
 	}
 	render_receiver2(receiver.x,receiver.y);
@@ -509,7 +511,7 @@ function render_room2(room_,source_,color){
 	ctx_rir2.closePath();
 	ctx_rir2.globalAlpha = 0.5;
 	ctx_rir2.fill();
-	render_source2(source_[0],source_[1]);
+	render_source2(source_[0],source_[1],0);
 }
 function render_receiver2(x,y){
 	ctx_rir2.globalAlpha = 1;
@@ -522,9 +524,9 @@ function render_receiver2(x,y){
 	ctx_rir2.fill();
 	ctx_rir2.closePath();
 }
-function render_source2(x,y){
+function render_source2(x,y,color_idx){
 	ctx_rir2.globalAlpha = 1;
-	ctx_rir2.drawImage(dino,scale*x+x_center,scale*y+y_center);
+	ctx_rir2.drawImage(dino_images[color_idx],scale*x+x_center,scale*y+y_center);
 }
 function clear_canvas(){
 	ctx_rir.clearRect(0, 0, RIR_canvas.width, RIR_canvas.height);
@@ -614,7 +616,6 @@ function draw_animation(){
 	-save
 	-load
 -Sistemare audibility check
--Animazioni e colori dinosauri
 */
 
 ///////////////////////////////////////////////////////////////////////////
