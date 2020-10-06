@@ -63,12 +63,73 @@ function render_schermata(idx){
     }
 }
 var ctx = canvas.getContext("2d");
-function drawCoords(x, y) {
+var ctx2 = canvas2.getContext("2d");
+var ctx3 = canvas3.getContext("2d");
+function drawCoords(x, y) {//render della shape
 	var c = grid.translate(x, y);
 	ctx.save();
 	ctx.fillStyle = "#000";
 	ctx.fillText("("+c.x+", "+c.y+")", 10, 15);
 	ctx.restore();
+}
+function draw_receiver_editor(e){//drag and drop ricevitore
+	ctx2.clearRect(0,0,canvas2.width,canvas2.height);
+	ctx2.globalAlpha = 0.5;
+	ctx2.moveTo(e.clientX,e.clientY);
+	ctx2.beginPath();
+	ctx2.arc(e.clientX,e.clientY,5,0,2*Math.PI);
+	ctx2.stroke();
+	ctx2.fillStyle = "black";
+	ctx2.fill();
+	ctx2.closePath();
+	c = grid.translate(e.clientX-5,e.clientY-5);
+	R_x_input.value = c.x;
+	R_y_input.value = c.y;
+}
+function draw_source_editor(e){//drag and drop sorgente
+	ctx2.clearRect(0,0,canvas2.width,canvas2.height);
+	ctx2.globalAlpha = 0.5;
+	ctx2.drawImage(dino_images[0],e.clientX,e.clientY);
+	c = grid.translate(e.clientX-5,e.clientY-5);
+	RS_x_input.value = c.x;
+	RS_y_input.value = c.y;
+}
+function draw_ULA_editor(e){//drag and drop array
+	ctx2.clearRect(0,0,canvas2.width,canvas2.height);
+	ctx2.globalAlpha = 0.5;
+	ctx2.strokeStyle = "black";
+	ctx2.lineWidth = "2px"
+	ctx2.beginPath();
+	ctx2.moveTo(e.clientX-35,e.clientY+25);
+	ctx2.lineTo(e.clientX+25,e.clientY-35);
+	ctx2.stroke();
+	ctx2.closePath();
+	c = grid.translate(e.clientX-5,e.clientY-5);
+	ULA_x_input.value = c.x;
+	ULA_y_input.value = c.y;
+}
+function render_objects_editor(){//mostra gli oggetti già inseriti
+	ctx3.clearRect(0,0,canvas2.width,canvas2.height);
+	if (typeof editor_active_objects.RS_x !== 'undefined' && typeof editor_active_objects.RS_y !== 'undefined'){
+		ctx3.drawImage(dino_images[0],editor_active_objects.RS_x,editor_active_objects.RS_y);
+	}
+	if (typeof editor_active_objects.R_x !== 'undefined' && typeof editor_active_objects.R_x !== 'undefined'){
+		ctx3.moveTo(editor_active_objects.R_x,editor_active_objects.R_y);
+		ctx3.beginPath();
+		ctx3.arc(editor_active_objects.R_x,editor_active_objects.R_y,5,0,2*Math.PI);
+		ctx3.stroke();
+		ctx3.fillStyle = "black";
+		ctx3.fill();
+		ctx3.closePath();
+	}
+	if (typeof editor_active_objects.ULA_x !== 'undefined' && typeof editor_active_objects.ULA_x !== 'undefined'){
+		ctx3.moveTo(editor_active_objects.R_x-30,editor_active_objects.R_y+30);
+		ctx3.beginPath();
+		ctx3.moveTo(editor_active_objects.ULA_x-35,editor_active_objects.ULA_y+25);
+		ctx3.lineTo(editor_active_objects.ULA_x+25,editor_active_objects.ULA_y-35);
+		ctx3.stroke();
+		ctx3.closePath();
+	}
 }
 
 //EDITOR DATA OBJECTS
@@ -85,7 +146,7 @@ Shape.prototype = {
 		if (this.last >= 0 &&
 		   (p.x === this.getLast().x &&
 			p.y === this.getLast().y)
-		) {
+		) {	
 			return;
 		}
 		this.points.push(p);
@@ -192,16 +253,64 @@ var Tools = {
 	LINE: 1
 }
 var shape, grid, currentTool = Tools.LINE;
+var editor_status = 0;
+var editor_active_objects = {};
+
+function editor_FSM(){//modifica il comportamento all'inserzione degli oggetti
+	if (editor_status==0){
+		canvas2.onmousemove = null;
+	}
+	if (editor_status==1){//inserzione sorgente reale
+		canvas2.onmousemove = draw_source_editor;
+		canvas2.onclick = function(e){
+			canvas2.onmousemove = null;
+			editor_status = 0;
+			editor_active_objects.RS_x = e.clientX;
+			editor_active_objects.RS_y = e.clientY;
+			render_objects_editor();
+		}
+	}
+	if (editor_status==2){//inserzione ricevitore
+		canvas2.onmousemove = draw_receiver_editor;
+		canvas2.onclick = function(e){
+			canvas2.onmousemove = null;
+			editor_status = 0;
+			editor_active_objects.R_x = e.clientX;
+			editor_active_objects.R_y = e.clientY;
+			render_objects_editor();
+		}
+	}
+	if (editor_status==3){//inserzione array
+		canvas2.onmousemove = draw_ULA_editor;
+		canvas2.onclick = function(e){
+			canvas2.onmousemove = null;
+			editor_status = 0;
+			editor_active_objects.ULA_x = e.clientX;
+			editor_active_objects.ULA_y = e.clientY;
+			render_objects_editor();
+		}
+	}
+}
 
 //EDITOR CONTROLLER
 function open_editor(){//inizializzazioni all'apertura dell'editor
     shape = new Shape();    //inizializza poligono 
     grid = new Grid();      //crea oggetto griglia
-    grid.set(20);
+	grid.set(20);
+	editor_active_objects = {};
     windowResize();
 	window.onresize = windowResize;
 	currentTool = Tools.LINE;
+	info_container.style.display = "none";
 	nome_stanza.value = "";
+	RS_x_input.value = "SOURCE X";
+	RS_y_input.value = "SOURCE Y";
+	R_x_input.value = "MIC X";
+	R_y_input.value = "MIC Y";
+	ULA_x_input.value = "ARRAY X";
+	ULA_y_input.value = "ARRAY Y";
+	editor_status = 0;
+	editor_FSM();
 }
 window.onmousedown = function(evt){
     if (schermata_attuale==1){//solo in editing
@@ -219,7 +328,8 @@ window.onmousedown = function(evt){
 			    c.x === shape.points[0].x &&
 			    c.y === shape.points[0].y
 		    ) {
-			    currentTool = Tools.MOVE;
+				currentTool = Tools.MOVE;///finita la shape
+				info_container.style.display = "block";
 		    }
 		    grid.draw();
 		    shape.draw(grid);
@@ -250,7 +360,11 @@ window.onmousemove = function(evt) {
 }
 function windowResize() {
 	canvas.width = window.innerWidth - 230;
-    canvas.height = window.innerHeight - 50;
+	canvas.height = window.innerHeight - 50;
+	canvas2.width = window.innerWidth - 230;
+	canvas2.height = window.innerHeight - 50;
+	canvas3.width = window.innerWidth - 230;
+    canvas3.height = window.innerHeight - 50;
     refl_container.style.left = window.innerWidth - 200;
     grid.set(20);
 	shape.draw(grid);
@@ -279,7 +393,18 @@ function save_room(){
 	schermata_attuale = 0;
 	render_schermata(schermata_attuale);
 }
-
+function click_source(){
+	editor_status = 1;
+	editor_FSM();
+}
+function click_receiver(){
+	editor_status = 2;
+	editor_FSM();
+}
+function click_ULA(){
+	editor_status = 3;
+	editor_FSM();
+}
 ///////////////////////////////////////////////////////////////////////////
 ////////////////////////////////RIR SIM FRONTEND///////////////////////////
 ////////////////////////////////METODO ORLANDYNO///////////////////////////
@@ -616,6 +741,7 @@ function draw_animation(){
 	-save
 	-load
 -Sistemare audibility check
+-Frontend ULA
 */
 
 ///////////////////////////////////////////////////////////////////////////

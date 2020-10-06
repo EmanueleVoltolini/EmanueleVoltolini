@@ -14,26 +14,38 @@
 </div>
 
 <div class = schermata id = schermata_2>
-    EDITOR
-
     <canvas id = canvas></canvas>
+    <canvas id = canvas3></canvas>
+    <canvas id = canvas2></canvas>
     <div id = "refl_container">
         REFLECTIVITY
         <input type = "range" id = reflectivity_selector></input>
-        <button onclick = "open_editor()">CANCEL</button>
-        <input id=nome_stanza type = "text"></input>
-        <button onclick = "save_room()">SAVE</button>
-        <br>REAL SOURCE
-        <button>CLICK</button>
-        <div class=coord_container>
-            <input class="coord_input" type="text" id="RS_x_input"></input>
-            <input class="coord_input" type="text" id="RS_y_input"></input>
-        </div>
-        <br>RECEIVER
-        <button>CLICK</button>
-        <div class=coord_container>
-            <input class="coord_input" type="text" id="RS_x_input"></input>
-            <input class="coord_input" type="text" id="RS_y_input"></input>
+        <div id = info_container>
+            <button onclick = "open_editor()">CANCEL</button>
+            <input id=nome_stanza type = "text"></input>
+            <button onclick = "save_room()">SAVE</button>
+            <br>REAL SOURCE
+            <button onclick = "click_source()">CLICK</button>
+            <div class=coord_container>
+                <input class="coord_input" type="text" id="RS_x_input"></input>
+                <input class="coord_input" type="text" id="RS_y_input"></input>
+            </div>
+            <br>RECEIVER
+            <button onclick="click_receiver()">CLICK</button>
+            <div class=coord_container>
+                <input class="coord_input" type="text" id="R_x_input"></input>
+                <input class="coord_input" type="text" id="R_y_input"></input>
+            </div>
+            <br>LINEAR ARRAY
+            <button onclick="click_ULA()">CLICK</button>
+            <div class=coord_container>
+                <input class="coord_input" type="text" id="ULA_x_input"></input>
+                <input class="coord_input" type="text" id="ULA_y_input"></input>
+            </div>
+            <div class=coord_container>
+                <input class="coord_input" type="text" id="ULA_theta_input"></input>
+                <input class="coord_input" type="text" id="ULA_d_input"></input>
+            </div>
         </div>
     </div>
 </div>
