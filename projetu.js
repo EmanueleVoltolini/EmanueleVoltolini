@@ -100,13 +100,52 @@ function draw_ULA_editor(e){//drag and drop array
 	ctx2.strokeStyle = "black";
 	ctx2.lineWidth = "2px"
 	ctx2.beginPath();
-	ctx2.moveTo(e.clientX-35,e.clientY+25);
-	ctx2.lineTo(e.clientX+25,e.clientY-35);
+	editor_active_objects.ULA_angle = -Math.PI/4;
+	var swing_y = Math.round(30*Math.sin(editor_active_objects.ULA_angle));
+	var swing_x = Math.round(30*Math.cos(editor_active_objects.ULA_angle));
+	ctx2.moveTo(e.clientX-5 -swing_x , e.clientY-5 -swing_y);
+	ctx2.lineTo(e.clientX-5 +swing_x , e.clientY-5 +swing_y);
 	ctx2.stroke();
 	ctx2.closePath();
 	c = grid.translate(e.clientX-5,e.clientY-5);
 	ULA_x_input.value = c.x;
 	ULA_y_input.value = c.y;
+}
+function rotate_ULA_editor(e){//rotate array
+	ctx2.clearRect(0,0,canvas2.width,canvas2.height);
+	ctx2.globalAlpha = 0.5;
+	ctx2.strokeStyle = "black";
+	ctx2.lineWidth = "2px"
+	ctx2.beginPath();
+	var x = editor_active_objects.ULA_x-5;
+	var y = editor_active_objects.ULA_y-5;
+	editor_active_objects.ULA_angle = Math.atan((e.clientY-5-y)/(e.clientX-5-x));
+	var swing_y = Math.round(30*Math.sin(editor_active_objects.ULA_angle));
+	var swing_x = Math.round(30*Math.cos(editor_active_objects.ULA_angle));
+	ctx2.moveTo(x -swing_x , y -swing_y);
+	ctx2.lineTo(x +swing_x , y +swing_y);
+	ctx2.stroke();
+	ctx2.closePath();
+	ULA_theta_input.value = (-editor_active_objects.ULA_angle * 180/Math.PI) + "°";
+}
+function scale_ULA_editor(e){//rescale array
+	ctx2.clearRect(0,0,canvas2.width,canvas2.height);
+	ctx2.globalAlpha = 0.5;
+	ctx2.strokeStyle = "black";
+	ctx2.lineWidth = "2px"
+	ctx2.beginPath();
+	var x = editor_active_objects.ULA_x-5;
+	var y = editor_active_objects.ULA_y-5;
+	var rho = Math.sqrt(Math.pow(e.clientX-x,2) + Math.pow(e.clientY-y,2));
+	var theta = editor_active_objects.ULA_angle;
+	var swing_y = Math.round(rho*Math.sin(theta));
+	var swing_x = Math.round(rho*Math.cos(theta));
+	ctx2.moveTo(x -swing_x , y -swing_y);
+	ctx2.lineTo(x +swing_x , y +swing_y);
+	ctx2.stroke();
+	ctx2.closePath();
+	editor_active_objects.ULA_aperture = 2*rho;
+	ULA_a_input.value = editor_active_objects.ULA_aperture/grid.size;
 }
 function render_objects_editor(){//mostra gli oggetti già inseriti
 	ctx3.clearRect(0,0,canvas2.width,canvas2.height);
@@ -123,10 +162,15 @@ function render_objects_editor(){//mostra gli oggetti già inseriti
 		ctx3.closePath();
 	}
 	if (typeof editor_active_objects.ULA_x !== 'undefined' && typeof editor_active_objects.ULA_x !== 'undefined'){
-		ctx3.moveTo(editor_active_objects.R_x-30,editor_active_objects.R_y+30);
 		ctx3.beginPath();
-		ctx3.moveTo(editor_active_objects.ULA_x-35,editor_active_objects.ULA_y+25);
-		ctx3.lineTo(editor_active_objects.ULA_x+25,editor_active_objects.ULA_y-35);
+		var x = editor_active_objects.ULA_x-5;
+		var y = editor_active_objects.ULA_y-5;
+		var rho = editor_active_objects.ULA_aperture/2;
+		var theta = editor_active_objects.ULA_angle;
+		var swing_y = Math.round(rho*Math.sin(theta));
+		var swing_x = Math.round(rho*Math.cos(theta));
+		ctx3.moveTo(x -swing_x , y -swing_y);
+		ctx3.lineTo(x +swing_x , y +swing_y);
 		ctx3.stroke();
 		ctx3.closePath();
 	}
@@ -283,10 +327,24 @@ function editor_FSM(){//modifica il comportamento all'inserzione degli oggetti
 	if (editor_status==3){//inserzione array
 		canvas2.onmousemove = draw_ULA_editor;
 		canvas2.onclick = function(e){
-			canvas2.onmousemove = null;
-			editor_status = 0;
+			editor_status = 4;
 			editor_active_objects.ULA_x = e.clientX;
 			editor_active_objects.ULA_y = e.clientY;
+			editor_FSM();
+		}
+	}
+	if (editor_status==4){//rotazione array
+		canvas2.onmousemove = rotate_ULA_editor;
+		canvas2.onclick = function(){
+			editor_status = 5;
+			editor_FSM();
+		}
+	}
+	if (editor_status==5){//dilatazione array
+		canvas2.onmousemove = scale_ULA_editor;
+		canvas2.onclick = function(){
+			canvas2.onmousemove = null;
+			editor_status = 0;
 			render_objects_editor();
 		}
 	}
@@ -309,6 +367,8 @@ function open_editor(){//inizializzazioni all'apertura dell'editor
 	R_y_input.value = "MIC Y";
 	ULA_x_input.value = "ARRAY X";
 	ULA_y_input.value = "ARRAY Y";
+	ULA_theta_input.value = "ANGLE";
+	ULA_a_input.value = "APERTURE";
 	editor_status = 0;
 	editor_FSM();
 }
@@ -736,7 +796,8 @@ function draw_animation(){
 
 /*TODO LIST
 
--Capire dove si mette la sorgente!!
+-rotazione array in editor
+-salvataggio/caricamento dati
 -Sistemare FSM con tutte le features
 	-save
 	-load
@@ -747,8 +808,6 @@ function draw_animation(){
 ///////////////////////////////////////////////////////////////////////////
 ////////////////////////////////RIR SIM BACKEND////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
-
-///////////////////////////////////////FUNCTION DECLARATION///////////////////////////////
 
 function mirror_point(edge,source){    
     var x_out;
