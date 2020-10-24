@@ -20,7 +20,8 @@ receiver = {x:1,y:2};
 //CONSTANT
 var schermata_attuale = 0;
 var sound_velocity = 340;  // [m/s]
-
+var reflections = {delays: [], magnitude:[]};
+var signal_pow = 100;
 ///////////////////////////////////////////////////////////////////////////
 //////////////////////////////CONTROLLER///////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
@@ -57,7 +58,20 @@ function render_schermata(idx){
         schermata_4.style.display = "inline";
     }
     if (idx==4){
-        schermata_5.style.display = "inline";
+		schermata_5.style.display = "inline";
+		var ctx1 = document.getElementById('delayChart').getContext('2d');
+		//const chart = document.getElementById('delayChart');
+		data_approx();
+		let barChart = new Chart(ctx1, {
+			type:'bar',
+			data: {
+				labels: reflections.delays,
+				dataset: [
+					{
+						data: reflections.magnitude
+				}] 
+			}
+		});
 	}
 	if (idx==5){
 		schermata_6.style.display = "inline";
@@ -621,6 +635,12 @@ function draw_animation(){
 
 ///////////////////////////////////////FUNCTION DECLARATION///////////////////////////////
 
+function data_approx(){
+	for(k=0;k<reflections.delays.length;k++){
+		reflections.delays[k] = Math.round(reflections.delays[k]*10000)/10000;
+		reflections.magnitude[k] = Math.round(reflections.magnitude[k]*10000)/10000;	
+	}
+}
 function point_distance(point_a,point_b){
 	var distance;
 	var x = point_a[0] - point_b[0]
@@ -834,13 +854,17 @@ function time_distance(virt_sources,receiver){
 	var s;
 	var dist;
 	var t;
+	var delay;
 	virt_sources[0][0].time = point_distance(real_source,receiver) / sound_velocity;
 	for(i=1;i<virt_sources.length;i++){
 		for(j=0;j<virt_sources[i].length;j++){
 			s = virt_sources[i][j].source;
 			dist = point_distance(s,receiver);
 			t = dist/sound_velocity;
-			virt_sources[i][j].time = t + virt_sources[i][j].parent.time;
+			delay = t + virt_sources[i][j].parent.time;
+			virt_sources[i][j].time = delay;
+			reflections.delays.push(delay);
+			reflections.magnitude.push(virt_sources[i][j].attenuation*signal_pow);
 		}
 	}
 	return virt_sources;
