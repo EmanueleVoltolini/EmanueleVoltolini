@@ -20,8 +20,12 @@ receiver = {x:1,y:2};
 //CONSTANT
 var schermata_attuale = 0;
 var sound_velocity = 340;  // [m/s]
-var reflections = {delays: [], magnitude:[]};
+var reflections = {delays: [], magnitude:[], colors: [], iter: []};
 var signal_pow = 100;
+var color = ["#000000","#0000FF","#DC143C","#00FFFF","#00FF00","#FFA500","#DDA0DD","#2E8B57","#FFFF00","#EE82EE",
+			  "#008080","#800000","#FFB6C1","#FFD700","#696969","#1E90FF","#FFE4C4","#FF6347","#F5F5F5","#CD853F"];
+var iteration = ["Direct path","First iteration","Second iteration", "Third iteration", "Fourth iteration", "Fifth iteration", "Sixth iteration","Seventh iteration"];
+var iter_labels = []
 ///////////////////////////////////////////////////////////////////////////
 //////////////////////////////CONTROLLER///////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
@@ -59,19 +63,49 @@ function render_schermata(idx){
     }
     if (idx==4){
 		schermata_5.style.display = "inline";
-		var ctx1 = document.getElementById('delayChart').getContext('2d');
-		//const chart = document.getElementById('delayChart');
+		var ctx_chart = document.getElementById('delayChart').getContext('2d');
 		data_approx();
-		let barChart = new Chart(ctx1, {
+		barChart = new Chart(ctx_chart, {
 			type:'bar',
 			data: {
 				labels: reflections.delays,
-				dataset: [
-					{
-						data: reflections.magnitude
-				}] 
+				datasets:[
+
+				]
+			},
+			options: {
+				legend: {
+						display: true,
+				},
+				title: {
+				  display: true,
+				  text: 'Room Impulse Response'
+				},
+				scales: {
+					xAxes: [{
+						stacked: true
+					}],
+					yAxes: [{
+						stacked: true
+					}]
+				}
 			}
+
 		});
+		for(i=0;i<=N_iter;i++){
+			var data_mag = [];
+			var color_data = [];
+			for(j=0;j<reflections.delays.length;j++){
+				color_data.push(color[i]);
+				if(reflections.iter[j]==i){
+					data_mag.push(reflections.magnitude[j]);
+				}
+				else{
+					data_mag.push(0);
+				}
+			}
+			addData(barChart,iter_labels[i],data_mag,color_data);
+		}
 	}
 	if (idx==5){
 		schermata_6.style.display = "inline";
@@ -622,6 +656,16 @@ function draw_animation(){
 	}
 	animationPhase++;
 }
+function addData(chart, label_chart, data_chart, color_chart) {
+//	console.log(color)
+	var dataset = {
+			data : data_chart,
+			backgroundColor : color_chart,
+			label : label_chart
+		}
+    chart.data.datasets.push(dataset,);
+    chart.update();
+}
 
 /*TODO LIST
 
@@ -634,6 +678,41 @@ function draw_animation(){
 ///////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////FUNCTION DECLARATION///////////////////////////////
+
+/*function count(array,val){
+	var counter = 0;
+	for(idx=0;idx<array.length;i++){
+		if(array.iter == val){
+			counter++;
+		}
+	}
+	return counter
+}*/
+
+function bubbleSort(){
+    let len = reflections.delays.length;
+    let swapped;
+    do {
+        swapped = false;
+        for (let i = 0; i < len; i++) {
+            if (reflections.delays[i] > reflections.delays[i + 1]) {
+				let tmp_delay = reflections.delays[i];
+				let tmp_mag = reflections.magnitude[i];
+				let tmp_col = reflections.colors[i];
+				let tmp_iter = reflections.iter[i];
+				reflections.delays[i] = reflections.delays[i + 1];
+				reflections.magnitude[i] = reflections.magnitude[i + 1];
+				reflections.colors[i] = reflections.colors[i + 1];
+				reflections.iter[i] = reflections.iter[i + 1];
+				reflections.delays[i + 1] = tmp_delay;
+				reflections.magnitude[i + 1] = tmp_mag;
+				reflections.colors[i + 1] = tmp_col;
+				reflections.iter[i + 1] = tmp_iter;				
+                swapped = true;
+            }
+        }
+    } while (swapped);
+};
 
 function data_approx(){
 	for(k=0;k<reflections.delays.length;k++){
@@ -746,11 +825,11 @@ function intersection(edge,point_a,point_b){
 }
 function RIR_iteration_source(room,source,receiver){
     var virtual_sources = [];
-    var this_iteration =[];
+    var this_iteration = [];
     var virt_source;
     var reflect_edge;
     var virt_length;
-    virtual_sources.push([{source: source, edge: -1, parent : null, audible: true, attenuation: 1, time: -1}]);
+    virtual_sources.push([{source: source, edge: -1, parent : null, audible: true, attenuation: 1, time: -1, iter: 0}]);
     for (idx=1;idx <= N_iter;idx++){
         virt_length = virtual_sources[idx-1].length;
         for(n=0;n<virt_length;n++){
@@ -760,7 +839,7 @@ function RIR_iteration_source(room,source,receiver){
                 if(reflect_edge != j){    
 					virt_source = mirror_point(room.edges[j],source);
 					atten = virtual_sources[idx-1][n].attenuation * room.edges[j].reflect
-                    this_iteration.push({source: virt_source, edge: j, parent: virtual_sources[idx-1][n],audible: true, attenuation: atten, time: -1});
+                    this_iteration.push({source: virt_source, edge: j, parent: virtual_sources[idx-1][n],audible: true, attenuation: atten, time: -1, iter: idx});
                 }
             }
         }  
@@ -856,16 +935,29 @@ function time_distance(virt_sources,receiver){
 	var t;
 	var delay;
 	virt_sources[0][0].time = point_distance(real_source,receiver) / sound_velocity;
+	iter_labels.push(iteration[0]);
+	if (virt_sources[0][0].audible == true){
+	reflections.delays.push(virt_sources[0][0].time);
+	reflections.magnitude.push(virt_sources[0][0].attenuation*signal_pow)
+	reflections.colors.push(color[0]);
+	reflections.iter.push(0);
+	}
 	for(i=1;i<virt_sources.length;i++){
+		iter_labels.push(iteration[i]);
 		for(j=0;j<virt_sources[i].length;j++){
 			s = virt_sources[i][j].source;
 			dist = point_distance(s,receiver);
 			t = dist/sound_velocity;
 			delay = t + virt_sources[i][j].parent.time;
 			virt_sources[i][j].time = delay;
-			reflections.delays.push(delay);
-			reflections.magnitude.push(virt_sources[i][j].attenuation*signal_pow);
+			if (virt_sources[i][j].audible==true){
+				reflections.delays.push(delay);
+				reflections.magnitude.push(virt_sources[i][j].attenuation*signal_pow);
+				reflections.colors.push(color[virt_sources[i][j].iter]);
+				reflections.iter.push(virt_sources[i][j].iter);
+			}
 		}
 	}
+	bubbleSort();
 	return virt_sources;
 }
