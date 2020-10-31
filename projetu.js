@@ -63,9 +63,10 @@ function render_schermata(idx){
     }
     if (idx==4){
 		schermata_5.style.display = "inline";
-		var ctx_chart = document.getElementById('delayChart').getContext('2d');
-		data_approx();
-		barChart = new Chart(ctx_chart, {
+		////////////////////////////////////////CHART CODE////////////////////////////////////////////
+		var ctx_chart = document.getElementById('delayChart').getContext('2d');  //create a ctx for the chart
+		data_approx();  								//approximation of the data in order to have a better visualization of the delays
+		barChart = new Chart(ctx_chart, {               //creation of the new chart
 			type:'bar',
 			data: {
 				labels: reflections.delays,
@@ -92,6 +93,7 @@ function render_schermata(idx){
 			}
 
 		});
+		//for cycle to fill the dataset dynamically
 		for(i=0;i<=N_iter;i++){
 			var data_mag = [];
 			var color_data = [];
@@ -101,11 +103,12 @@ function render_schermata(idx){
 					data_mag.push(reflections.magnitude[j]);
 				}
 				else{
-					data_mag.push(0);
+					data_mag.push(0);  //add value 0 for the value != num iter that we are considering
 				}
 			}
-			addData(barChart,iter_labels[i],data_mag,color_data);
+			addData(barChart,iter_labels[i],data_mag,color_data); //call the function to fill the chart
 		}
+		//////////////////////////////////////////////END OF CHART CODE//////////////////////////////////////////////////////
 	}
 	if (idx==5){
 		schermata_6.style.display = "inline";
@@ -679,17 +682,7 @@ function addData(chart, label_chart, data_chart, color_chart) {
 
 ///////////////////////////////////////FUNCTION DECLARATION///////////////////////////////
 
-/*function count(array,val){
-	var counter = 0;
-	for(idx=0;idx<array.length;i++){
-		if(array.iter == val){
-			counter++;
-		}
-	}
-	return counter
-}*/
-
-function bubbleSort(){
+function bubbleSort(){                                       //function used to sort the reflection array accordingly with the delays
     let len = reflections.delays.length;
     let swapped;
     do {
