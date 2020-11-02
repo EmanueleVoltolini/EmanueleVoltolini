@@ -10,6 +10,7 @@
         <div class = selector>MICROPHONE ARRAY</div>
         <div class = selector>CREDITS</div>
         <div class = selector>METODO SARTI</div>
+        <div class = selector>OUTPUT</div>
     </div>
 </div>
 
@@ -81,6 +82,12 @@
     </div>
 </div>
 
+<div class = schermata id = schermata_7>
+    <button onclick=play_buffer()>PLAY IMPULSE RESPONSE</button>
+    <button onclick="elephant_input.play()">PLAY ELEPHANT SNARL</button>
+    <button onclick=convolve(0)>SIMULATE ACOUSTICS</button>
+</div>
+
 <img src= "source.png" class="dinos"></img>
 <img src= "source_blue.png" class="dinos"></img>
 <img src= "source_green.png" class="dinos"></img>
@@ -88,5 +95,7 @@
 <img src= "source_violet.png" class="dinos"></img>
 <img src= "source_water.png" class="dinos"></img>
 <img src= "source_yellow.png" class="dinos"></img>
+
+<audio src="elephant_snarl.wav" id = elephant_input></audio>
 
 <script src="projetu.js"></script>
