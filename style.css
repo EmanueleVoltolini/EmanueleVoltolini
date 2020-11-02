@@ -24,6 +24,22 @@
     top:5px;
     left:5px;
     border:1px solid #ccc;
+}
+#canvas2{
+    display:block;
+    position:absolute;
+    margin:auto;
+    top:5px;
+    left:5px;
+    border:1px solid #ccc;
+} 
+#canvas3{
+    display:block;
+    position:absolute;
+    margin:auto;
+    top:5px;
+    left:5px;
+    border:1px solid #ccc;
 } 
 #refl_container{
     position: absolute;
@@ -58,7 +74,7 @@
 .buttons{
     display:block;
 }
-#dino{
+.dinos{
     display:none;
 }
 #sfondo{
@@ -76,4 +92,8 @@
 .buttoncontainer{
     position:absolute;
     right: 50px;
+}
+.coord_input{
+    width:45%;
+    display:inline-block;
 }

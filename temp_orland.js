@@ -15,22 +15,18 @@ saved_rooms = [my_room];
 var real_source = [2,1];
 var N_iter = 0;
 receiver = {x:1,y:2};
-var my_ULA = {x:0,y:0,angle:0,aperture:1,N_mic:10};
 ///////////////////////////////////////////////////////////////////////////
 
 //CONSTANT
 var schermata_attuale = 0;
 var sound_velocity = 340;  // [m/s]
-var reflections = {delays: [], magnitude:[], colors: [], iter: []};
+var reflections = {delays: [], magnitude:[]};
 var signal_pow = 100;
-var color = ["#000000","#0000FF","#DC143C","#00FFFF","#00FF00","#FFA500","#DDA0DD","#2E8B57","#FFFF00","#EE82EE",
-			  "#008080","#800000","#FFB6C1","#FFD700","#696969","#1E90FF","#FFE4C4","#FF6347","#F5F5F5","#CD853F"];
-var iteration = ["Direct path","First iteration","Second iteration", "Third iteration", "Fourth iteration", "Fifth iteration", "Sixth iteration","Seventh iteration"];
-var iter_labels = []
 ///////////////////////////////////////////////////////////////////////////
-////////////////////////////FSM CONTROLLER/////////////////////////////////
+//////////////////////////////CONTROLLER///////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
+//Schermata 1
 document.querySelectorAll(".selector").forEach(function(obj,idx){
     obj.onclick = function (){
         schermata_attuale = idx + 1;
@@ -63,176 +59,32 @@ function render_schermata(idx){
     }
     if (idx==4){
 		schermata_5.style.display = "inline";
-		////////////////////////////////////////CHART CODE////////////////////////////////////////////
-		var ctx_chart = document.getElementById('delayChart').getContext('2d');  //create a ctx for the chart
-		data_approx();  								//approximation of the data in order to have a better visualization of the delays
-		barChart = new Chart(ctx_chart, {               //creation of the new chart
+		var ctx1 = document.getElementById('delayChart').getContext('2d');
+		//const chart = document.getElementById('delayChart');
+		data_approx();
+		let barChart = new Chart(ctx1, {
 			type:'bar',
 			data: {
 				labels: reflections.delays,
-				datasets:[
-
-				]
-			},
-			options: {
-				legend: {
-						display: true,
-				},
-				title: {
-				  display: true,
-				  text: 'Room Impulse Response'
-				},
-				scales: {
-					xAxes: [{
-						stacked: true
-					}],
-					yAxes: [{
-						stacked: true
-					}]
-				}
+				dataset: [
+					{
+						data: reflections.magnitude
+				}] 
 			}
-
 		});
-		//for cycle to fill the dataset dynamically
-		for(i=0;i<=N_iter;i++){
-			var data_mag = [];
-			var color_data = [];
-			for(j=0;j<reflections.delays.length;j++){
-				color_data.push(color[i]);
-				if(reflections.iter[j]==i){
-					data_mag.push(reflections.magnitude[j]);
-				}
-				else{
-					data_mag.push(0);  //add value 0 for the value != num iter that we are considering
-				}
-			}
-			addData(barChart,iter_labels[i],data_mag,color_data); //call the function to fill the chart
-		}
-		//////////////////////////////////////////////END OF CHART CODE//////////////////////////////////////////////////////
 	}
 	if (idx==5){
 		schermata_6.style.display = "inline";
 		setup_simulation2();
-	}
-	if (idx==6){
-		document.body.style.cursor = 'wait';//NOT WORKING!!!
-		schermata_7.style.display = "inline";
-		full_simulation_single_receiver();
-		document.body.style.cursor = 'default';
     }
 }
 var ctx = canvas.getContext("2d");
-var ctx2 = canvas2.getContext("2d");
-var ctx3 = canvas3.getContext("2d");
-function drawCoords(x, y) {//render della shape
+function drawCoords(x, y) {
 	var c = grid.translate(x, y);
 	ctx.save();
 	ctx.fillStyle = "#000";
 	ctx.fillText("("+c.x+", "+c.y+")", 10, 15);
 	ctx.restore();
-}
-function draw_receiver_editor(e){//drag and drop ricevitore
-	ctx2.clearRect(0,0,canvas2.width,canvas2.height);
-	ctx2.globalAlpha = 0.5;
-	ctx2.moveTo(e.clientX,e.clientY);
-	ctx2.beginPath();
-	ctx2.arc(e.clientX,e.clientY,5,0,2*Math.PI);
-	ctx2.stroke();
-	ctx2.fillStyle = "black";
-	ctx2.fill();
-	ctx2.closePath();
-	c = grid.translate(e.clientX-5,e.clientY-5);
-	R_x_input.value = c.x;
-	R_y_input.value = c.y;
-}
-function draw_source_editor(e){//drag and drop sorgente
-	ctx2.clearRect(0,0,canvas2.width,canvas2.height);
-	ctx2.globalAlpha = 0.5;
-	ctx2.drawImage(dino_images[0],e.clientX,e.clientY);
-	c = grid.translate(e.clientX-5,e.clientY-5);
-	RS_x_input.value = c.x;
-	RS_y_input.value = c.y;
-}
-function draw_ULA_editor(e){//drag and drop array
-	ctx2.clearRect(0,0,canvas2.width,canvas2.height);
-	ctx2.globalAlpha = 0.5;
-	ctx2.strokeStyle = "black";
-	ctx2.lineWidth = "2px"
-	ctx2.beginPath();
-	editor_active_objects.ULA_angle = -Math.PI/4;
-	var swing_y = Math.round(30*Math.sin(editor_active_objects.ULA_angle));
-	var swing_x = Math.round(30*Math.cos(editor_active_objects.ULA_angle));
-	ctx2.moveTo(e.clientX-5 -swing_x , e.clientY-5 -swing_y);
-	ctx2.lineTo(e.clientX-5 +swing_x , e.clientY-5 +swing_y);
-	ctx2.stroke();
-	ctx2.closePath();
-	c = grid.translate(e.clientX-5,e.clientY-5);
-	ULA_x_input.value = c.x;
-	ULA_y_input.value = c.y;
-}
-function rotate_ULA_editor(e){//rotate array
-	ctx2.clearRect(0,0,canvas2.width,canvas2.height);
-	ctx2.globalAlpha = 0.5;
-	ctx2.strokeStyle = "black";
-	ctx2.lineWidth = "2px"
-	ctx2.beginPath();
-	var x = editor_active_objects.ULA_x-5;
-	var y = editor_active_objects.ULA_y-5;
-	editor_active_objects.ULA_angle = Math.atan((e.clientY-5-y)/(e.clientX-5-x));
-	var swing_y = Math.round(30*Math.sin(editor_active_objects.ULA_angle));
-	var swing_x = Math.round(30*Math.cos(editor_active_objects.ULA_angle));
-	ctx2.moveTo(x -swing_x , y -swing_y);
-	ctx2.lineTo(x +swing_x , y +swing_y);
-	ctx2.stroke();
-	ctx2.closePath();
-	ULA_theta_input.value = (-editor_active_objects.ULA_angle * 180/Math.PI) + "°";
-}
-function scale_ULA_editor(e){//rescale array
-	ctx2.clearRect(0,0,canvas2.width,canvas2.height);
-	ctx2.globalAlpha = 0.5;
-	ctx2.strokeStyle = "black";
-	ctx2.lineWidth = "2px"
-	ctx2.beginPath();
-	var x = editor_active_objects.ULA_x-5;
-	var y = editor_active_objects.ULA_y-5;
-	var rho = Math.sqrt(Math.pow(e.clientX-x,2) + Math.pow(e.clientY-y,2));
-	var theta = editor_active_objects.ULA_angle;
-	var swing_y = Math.round(rho*Math.sin(theta));
-	var swing_x = Math.round(rho*Math.cos(theta));
-	ctx2.moveTo(x -swing_x , y -swing_y);
-	ctx2.lineTo(x +swing_x , y +swing_y);
-	ctx2.stroke();
-	ctx2.closePath();
-	editor_active_objects.ULA_aperture = 2*rho;
-	ULA_a_input.value = editor_active_objects.ULA_aperture/grid.size;
-}
-function render_objects_editor(){//mostra gli oggetti già inseriti
-	ctx3.clearRect(0,0,canvas2.width,canvas2.height);
-	if (typeof editor_active_objects.RS_x !== 'undefined' && typeof editor_active_objects.RS_y !== 'undefined'){
-		ctx3.drawImage(dino_images[0],editor_active_objects.RS_x,editor_active_objects.RS_y);
-	}
-	if (typeof editor_active_objects.R_x !== 'undefined' && typeof editor_active_objects.R_x !== 'undefined'){
-		ctx3.moveTo(editor_active_objects.R_x,editor_active_objects.R_y);
-		ctx3.beginPath();
-		ctx3.arc(editor_active_objects.R_x,editor_active_objects.R_y,5,0,2*Math.PI);
-		ctx3.stroke();
-		ctx3.fillStyle = "black";
-		ctx3.fill();
-		ctx3.closePath();
-	}
-	if (typeof editor_active_objects.ULA_x !== 'undefined' && typeof editor_active_objects.ULA_x !== 'undefined'){
-		ctx3.beginPath();
-		var x = editor_active_objects.ULA_x-5;
-		var y = editor_active_objects.ULA_y-5;
-		var rho = editor_active_objects.ULA_aperture/2;
-		var theta = editor_active_objects.ULA_angle;
-		var swing_y = Math.round(rho*Math.sin(theta));
-		var swing_x = Math.round(rho*Math.cos(theta));
-		ctx3.moveTo(x -swing_x , y -swing_y);
-		ctx3.lineTo(x +swing_x , y +swing_y);
-		ctx3.stroke();
-		ctx3.closePath();
-	}
 }
 
 //EDITOR DATA OBJECTS
@@ -249,7 +101,7 @@ Shape.prototype = {
 		if (this.last >= 0 &&
 		   (p.x === this.getLast().x &&
 			p.y === this.getLast().y)
-		) {	
+		) {
 			return;
 		}
 		this.points.push(p);
@@ -356,80 +208,16 @@ var Tools = {
 	LINE: 1
 }
 var shape, grid, currentTool = Tools.LINE;
-var editor_status = 0;
-var editor_active_objects = {};
-
-function editor_FSM(){//modifica il comportamento all'inserzione degli oggetti
-	if (editor_status==0){
-		canvas2.onmousemove = null;
-	}
-	if (editor_status==1){//inserzione sorgente reale
-		canvas2.onmousemove = draw_source_editor;
-		canvas2.onclick = function(e){
-			canvas2.onmousemove = null;
-			editor_status = 0;
-			editor_active_objects.RS_x = e.clientX;
-			editor_active_objects.RS_y = e.clientY;
-			render_objects_editor();
-		}
-	}
-	if (editor_status==2){//inserzione ricevitore
-		canvas2.onmousemove = draw_receiver_editor;
-		canvas2.onclick = function(e){
-			canvas2.onmousemove = null;
-			editor_status = 0;
-			editor_active_objects.R_x = e.clientX;
-			editor_active_objects.R_y = e.clientY;
-			render_objects_editor();
-		}
-	}
-	if (editor_status==3){//inserzione array
-		canvas2.onmousemove = draw_ULA_editor;
-		canvas2.onclick = function(e){
-			editor_status = 4;
-			editor_active_objects.ULA_x = e.clientX;
-			editor_active_objects.ULA_y = e.clientY;
-			editor_FSM();
-		}
-	}
-	if (editor_status==4){//rotazione array
-		canvas2.onmousemove = rotate_ULA_editor;
-		canvas2.onclick = function(){
-			editor_status = 5;
-			editor_FSM();
-		}
-	}
-	if (editor_status==5){//dilatazione array
-		canvas2.onmousemove = scale_ULA_editor;
-		canvas2.onclick = function(){
-			canvas2.onmousemove = null;
-			editor_status = 0;
-			render_objects_editor();
-		}
-	}
-}
 
 //EDITOR CONTROLLER
 function open_editor(){//inizializzazioni all'apertura dell'editor
     shape = new Shape();    //inizializza poligono 
     grid = new Grid();      //crea oggetto griglia
-	grid.set(20);
-	editor_active_objects = {};
+    grid.set(20);
     windowResize();
 	window.onresize = windowResize;
 	currentTool = Tools.LINE;
-	info_container.style.display = "none";
 	nome_stanza.value = "";
-	RS_x_input.value = "SOURCE X";
-	RS_y_input.value = "SOURCE Y";
-	R_x_input.value = "MIC X";
-	R_y_input.value = "MIC Y";
-	ULA_x_input.value = "ARRAY X";
-	ULA_y_input.value = "ARRAY Y";
-	ULA_theta_input.value = "ANGLE";
-	ULA_a_input.value = "APERTURE";
-	editor_status = 0;
-	editor_FSM();
 }
 window.onmousedown = function(evt){
     if (schermata_attuale==1){//solo in editing
@@ -447,8 +235,7 @@ window.onmousedown = function(evt){
 			    c.x === shape.points[0].x &&
 			    c.y === shape.points[0].y
 		    ) {
-				currentTool = Tools.MOVE;///finita la shape
-				info_container.style.display = "block";
+			    currentTool = Tools.MOVE;
 		    }
 		    grid.draw();
 		    shape.draw(grid);
@@ -479,11 +266,7 @@ window.onmousemove = function(evt) {
 }
 function windowResize() {
 	canvas.width = window.innerWidth - 230;
-	canvas.height = window.innerHeight - 50;
-	canvas2.width = window.innerWidth - 230;
-	canvas2.height = window.innerHeight - 50;
-	canvas3.width = window.innerWidth - 230;
-    canvas3.height = window.innerHeight - 50;
+    canvas.height = window.innerHeight - 50;
     refl_container.style.left = window.innerWidth - 200;
     grid.set(20);
 	shape.draw(grid);
@@ -508,26 +291,11 @@ function save_room(){
 	
 	/// SOMEHOW PUSH TO DATABASE
 	my_room = room; //DEBUG
-	my_ULA.x = grid.translate(editor_active_objects.ULA_x,editor_active_objects.ULA_y).x;
-	my_ULA.y = grid.translate(editor_active_objects.ULA_x,editor_active_objects.ULA_y).y;
-	my_ULA.angle = editor_active_objects.ULA_angle;
-	my_ULA.aperture = editor_active_objects.ULA_aperture/grid.size;
 
 	schermata_attuale = 0;
 	render_schermata(schermata_attuale);
 }
-function click_source(){
-	editor_status = 1;
-	editor_FSM();
-}
-function click_receiver(){
-	editor_status = 2;
-	editor_FSM();
-}
-function click_ULA(){
-	editor_status = 3;
-	editor_FSM();
-}
+
 ///////////////////////////////////////////////////////////////////////////
 ////////////////////////////////RIR SIM FRONTEND///////////////////////////
 ////////////////////////////////METODO ORLANDYNO///////////////////////////
@@ -554,11 +322,10 @@ function next_iter(){
 }
 
 //RIR SIM RENDER
-var dino_images = document.querySelectorAll('.dinos');
 var ctx_rir = RIR_canvas.getContext("2d");
-var x_center = Math.round(window.innerWidth/2);	//
-var y_center = Math.round(window.innerHeight/2);// scaling variables init
-var scale = 10;									//
+var x_center = Math.round(window.innerWidth/2);			//
+var y_center = Math.round(window.innerHeight/2);		// scaling variables init
+var scale = 10;											//
 
 function render_all(virtual_sources){
 	clear_canvas();
@@ -625,7 +392,7 @@ function render_receiver(x,y){
 }
 function render_source(x,y){
 	ctx_rir.globalAlpha = 1;
-	ctx_rir.drawImage(dino_images[0],scale*x+x_center,scale*y+y_center);
+	ctx_rir.drawImage(dino,scale*x+x_center,scale*y+y_center);
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -698,12 +465,11 @@ function toggle_animation(){
 }
 
 //RIR SIM RENDER
-var dino_images = document.querySelectorAll('.dinos');
 var ctx_rir2 = RIR_canvas2.getContext("2d");
 var ctx_rir3 = RIR_canvas3.getContext("2d");
-var x_center = Math.round(window.innerWidth/2);	//
-var y_center = Math.round(window.innerHeight/2);// scaling variables init
-var scale;										//
+var x_center = Math.round(window.innerWidth/2);			//
+var y_center = Math.round(window.innerHeight/2);		// scaling variables init
+var scale;											    //
 
 function scale_and_center(virtual_sources){
 	var extremes = {x_max:0,x_min:0,y_max:0,y_min:0};
@@ -740,7 +506,7 @@ function render_all_source(virtual_sources){
 		this_list = virtual_sources[j];
 		for (k=0;k<this_list.length;k++){
 			this_VS = this_list[k];
-			render_source2(this_VS.source[0],this_VS.source[1],j%7);
+			render_source2(this_VS.source[0],this_VS.source[1]);
 		}
 	}
 	render_receiver2(receiver.x,receiver.y);
@@ -759,7 +525,7 @@ function render_room2(room_,source_,color){
 	ctx_rir2.closePath();
 	ctx_rir2.globalAlpha = 0.5;
 	ctx_rir2.fill();
-	render_source2(source_[0],source_[1],0);
+	render_source2(source_[0],source_[1]);
 }
 function render_receiver2(x,y){
 	ctx_rir2.globalAlpha = 1;
@@ -772,9 +538,9 @@ function render_receiver2(x,y){
 	ctx_rir2.fill();
 	ctx_rir2.closePath();
 }
-function render_source2(x,y,color_idx){
+function render_source2(x,y){
 	ctx_rir2.globalAlpha = 1;
-	ctx_rir2.drawImage(dino_images[color_idx],scale*x+x_center,scale*y+y_center);
+	ctx_rir2.drawImage(dino,scale*x+x_center,scale*y+y_center);
 }
 function clear_canvas(){
 	ctx_rir.clearRect(0, 0, RIR_canvas.width, RIR_canvas.height);
@@ -856,58 +622,17 @@ function draw_animation(){
 	}
 	animationPhase++;
 }
-function addData(chart, label_chart, data_chart, color_chart) {
-//	console.log(color)
-	var dataset = {
-			data : data_chart,
-			backgroundColor : color_chart,
-			label : label_chart
-		}
-    chart.data.datasets.push(dataset,);
-    chart.update();
-}
 
 /*TODO LIST
--salvataggio/caricamento dati
+-Capire dove si mette la sorgente!!
 -Sistemare FSM con tutte le features
-	-save
-	-load
--Sistemare audibility check
--Frontend ULA
 */
 
 ///////////////////////////////////////////////////////////////////////////
 ////////////////////////////////RIR SIM BACKEND////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
-sound_velocity = 340;
-
 
 ///////////////////////////////////////FUNCTION DECLARATION///////////////////////////////
-
-function bubbleSort(){                                       //function used to sort the reflection array accordingly with the delays
-    let len = reflections.delays.length;
-    let swapped;
-    do {
-        swapped = false;
-        for (let i = 0; i < len; i++) {
-            if (reflections.delays[i] > reflections.delays[i + 1]) {
-				let tmp_delay = reflections.delays[i];
-				let tmp_mag = reflections.magnitude[i];
-				let tmp_col = reflections.colors[i];
-				let tmp_iter = reflections.iter[i];
-				reflections.delays[i] = reflections.delays[i + 1];
-				reflections.magnitude[i] = reflections.magnitude[i + 1];
-				reflections.colors[i] = reflections.colors[i + 1];
-				reflections.iter[i] = reflections.iter[i + 1];
-				reflections.delays[i + 1] = tmp_delay;
-				reflections.magnitude[i + 1] = tmp_mag;
-				reflections.colors[i + 1] = tmp_col;
-				reflections.iter[i + 1] = tmp_iter;				
-                swapped = true;
-            }
-        }
-    } while (swapped);
-};
 
 function data_approx(){
 	for(k=0;k<reflections.delays.length;k++){
@@ -1020,11 +745,11 @@ function intersection(edge,point_a,point_b){
 }
 function RIR_iteration_source(room,source,receiver){
     var virtual_sources = [];
-    var this_iteration = [];
+    var this_iteration =[];
     var virt_source;
     var reflect_edge;
     var virt_length;
-    virtual_sources.push([{source: source, edge: -1, parent : null, audible: true, attenuation: 1, time: -1, iter: 0}]);
+    virtual_sources.push([{source: source, edge: -1, parent : null, audible: true, attenuation: 1, time: -1}]);
     for (idx=1;idx <= N_iter;idx++){
         virt_length = virtual_sources[idx-1].length;
         for(n=0;n<virt_length;n++){
@@ -1034,7 +759,7 @@ function RIR_iteration_source(room,source,receiver){
                 if(reflect_edge != j){    
 					virt_source = mirror_point(room.edges[j],source);
 					atten = virtual_sources[idx-1][n].attenuation * room.edges[j].reflect
-                    this_iteration.push({source: virt_source, edge: j, parent: virtual_sources[idx-1][n],audible: true, attenuation: atten, time: -1, iter: idx});
+                    this_iteration.push({source: virt_source, edge: j, parent: virtual_sources[idx-1][n],audible: true, attenuation: atten, time: -1});
                 }
             }
         }  
@@ -1130,102 +855,16 @@ function time_distance(virt_sources,receiver){
 	var t;
 	var delay;
 	virt_sources[0][0].time = point_distance(real_source,receiver) / sound_velocity;
-	iter_labels.push(iteration[0]);
-	if (virt_sources[0][0].audible == true){
-	reflections.delays.push(virt_sources[0][0].time);
-	reflections.magnitude.push(virt_sources[0][0].attenuation*signal_pow)
-	reflections.colors.push(color[0]);
-	reflections.iter.push(0);
-	}
 	for(i=1;i<virt_sources.length;i++){
-		iter_labels.push(iteration[i]);
 		for(j=0;j<virt_sources[i].length;j++){
 			s = virt_sources[i][j].source;
 			dist = point_distance(s,receiver);
 			t = dist/sound_velocity;
-			delay = t + virt_sources[i][j].parent.time;
-			virt_sources[i][j].time = delay;
-			if (virt_sources[i][j].audible==true){
-				reflections.delays.push(delay);
-				reflections.magnitude.push(virt_sources[i][j].attenuation*signal_pow);
-				reflections.colors.push(color[virt_sources[i][j].iter]);
-				reflections.iter.push(virt_sources[i][j].iter);
-			}
+			//delay = t + virt_sources[i][j].parent.time; //capire con orland
+			virt_sources[i][j].time = t;//delay;
+			reflections.delays.push(delay);
+			reflections.magnitude.push(virt_sources[i][j].attenuation*signal_pow);
 		}
 	}
-	bubbleSort();
 	return virt_sources;
 }
-function ULA_simulation(room,source,ULA){
-	var responses = [];
-	var this_receiver = [];
-	for (mic_idx = 0; mic_idx<ULA.N_mic; mic_idx++){
-		this_receiver[0] = ULA.x-Math.cos(ULA.angle)*0.5*ULA.aperture + mic_idx*ULA.aperture*Math.cos(ULA.angle)/(ULA.N_mic-1);
-		this_receiver[1] = ULA.y-Math.sin(ULA.angle)*0.5*ULA.aperture + mic_idx*ULA.aperture*Math.sin(ULA.angle)/(ULA.N_mic-1);
-		
-		var big_tree = RIR_iteration_source(room,source,this_receiver);
-		big_tree = time_distance(big_tree,this_receiver);
-		
-		var this_response = [];
-		for (hh=0;hh<big_tree.length;hh++){
-			this_iteration = big_tree[hh];
-			for (jj=0;jj<this_iteration.length;jj++){
-				this_source = this_iteration[jj];
-				this_response.push({time:this_source.time,attenuation:this_source.attenuation});
-			}
-		}
-		responses.push(this_response);
-	}
-	return responses;
-}
-function compile_buffer(v_sources){
-	for(ij=0;ij<v_sources.length;ij++){
-		this_iteration = v_sources[ij];
-		for(ki=0;ki<this_iteration.length;ki++){
-			this_source = this_iteration[ki];
-			if (this_source.audible){
-				sample = Math.round(this_source.time*audioCtx.sampleRate);
-				level = this_source.attenuation;
-				myBuffer.getChannelData(0)[sample] += level;//left channel
-				myBuffer.getChannelData(1)[sample] += level;//right channel
-			}
-		}
-	}
-}
-function full_simulation_single_receiver(){
-	N_iter = 10;
-	var sim = RIR_iteration_source(my_room,real_source,receiver);
-	sim = audibility_check(my_room,sim,receiver);
-	sim = time_distance(sim,receiver);
-	compile_buffer(sim);
-}
-///////////////////////////////////////////////////////////////////////////
-/////////////////////////////////AUDIO PLAYOUT/////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-
-audioCtx = new AudioContext();
-BUFFER_DURATION = 3;
-myBuffer = audioCtx.createBuffer(2,audioCtx.sampleRate*BUFFER_DURATION,audioCtx.sampleRate);
-
-function play_buffer(){
-	var source = audioCtx.createBufferSource();
-	// set the buffer in the AudioBufferSourceNode
-	source.buffer = myBuffer;
-	// connect the AudioBufferSourceNode to the
-	// destination so we can hear the sound
-	source.connect(audioCtx.destination);
-	// start the source playing
-	source.start();
-}
-function convolve(idx){
-	myConv = audioCtx.createConvolver();
-	if (idx==0){
-		myConv.buffer = myBuffer;
-		var audio = new Audio("elephant_snarl.wav");
-		//audio.crossOrigin = "anonymous";
-		var source = audioCtx.createMediaElementSource(audio);
-		source.connect(audioCtx.destination);
-		//source.connect(myConv);
-		//myConv.connect(audioCtx.destination);
-		audio.play();
-	}
