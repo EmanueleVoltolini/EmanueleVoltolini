@@ -1,11 +1,16 @@
 <link rel="stylesheet" href="style.css">
 
 <div class = schermata id = schermata_1>
-    DYNOSOURCE
-    <div class = selector>EDIT ROOM</div>
-    <div class = selector>SIMULATE</div>
-    <div class = selector>MICROPHONE ARRAY</div>
-    <div class = selector>CREDITS</div>
+    <div id="img_container">
+        <img src= "dinosource.png" id="sfondo"></img>
+    </div>
+    <div id="sel_container">
+        <div class = selector>EDIT ROOM</div>
+        <div class = selector>SIMULATE</div>
+        <div class = selector>MICROPHONE ARRAY</div>
+        <div class = selector>CREDITS</div>
+        <div class = selector>METODO SARTI</div>
+    </div>
 </div>
 
 <div class = schermata id = schermata_2>
@@ -24,8 +29,11 @@
 <div class = schermata id = schermata_3>
     RIR SIMULATION
     LOAD ROOM
-    <div id= room_names_container></div>
     <canvas id=RIR_canvas></canvas>
+    <div class='buttoncontainer'>
+        <button class = "buttons" onclick = prev_iter()>PREVIOUS</button>
+        <button class = "buttons" onclick = next_iter()>NEXT</button>
+    </div>
 </div>
 
 <div class = schermata id = schermata_4>
@@ -33,10 +41,26 @@
 </div>
 
 <div class = schermata id = schermata_5>
-    CREDITS
-    DYNOSOURCE done by Tyno and Orlandone
+    DYNOSOURCE by Tyno and Orlandone <br>
+    Stay minimal
+    <div>
+    <canvas id="delayChart"></canvas>
+    </div>
+</div>
+
+<div class = schermata id = schermata_6>
+    METODO SARTI
+    <canvas id=RIR_canvas2></canvas>
+    <canvas id=RIR_canvas3></canvas>
+    <div class='buttoncontainer'>
+        <button class = "buttons" onclick = prev_iter_source()>PREVIOUS</button>
+        <button class = "buttons" onclick = next_iter_source()>NEXT</button>
+        <button id='pathbutton' class = "buttons" onclick = show_hide_path()>SHOW PATHS</button>
+        <button class = "buttons" onclick = toggle_animation()>ANIMATION</button>
+    </div>
 </div>
 
 <img src= "source.png" id="dino"></img>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.0"></script>
 
 <script src="projetu.js"></script>

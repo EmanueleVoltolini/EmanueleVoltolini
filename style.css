@@ -4,10 +4,10 @@
 
 .selector{
     width : 200px;
-    height : 100px;
+    height : 50px;
     border-radius : 20%;
-    margin : 10%;
-    display : inline-block;
+    margin : 5%;
+    display : block;
     background-color: grey;
     text-align : center;
 }
@@ -28,9 +28,6 @@
 #refl_container{
     position: absolute;
 }
-.room_name{
-    background-color : red;
-}
 
 #RIR_canvas{
     background-color:#fff;
@@ -40,4 +37,43 @@
     top:5px;
     left:5px;
     border:1px solid #ccc;
-} 
+}
+#RIR_canvas2{
+    background-color:#fff;
+    display:block;
+    position:absolute;
+    margin:auto;
+    top:5px;
+    left:5px;
+    border:1px solid #ccc;
+}
+#RIR_canvas3{
+    display:block;
+    position:absolute;
+    margin:auto;
+    top:5px;
+    left:5px;
+    border:1px solid #ccc;
+}
+.buttons{
+    display:block;
+}
+#dino{
+    display:none;
+}
+#sfondo{
+    object-fit: contain;
+    height: 100%;
+}
+#img_container{
+    display: inline-block;
+    height: 100%;
+}
+#sel_container{
+    display: inline-block;
+    position: absolute;
+}
+.buttoncontainer{
+    position:absolute;
+    right: 50px;
+}

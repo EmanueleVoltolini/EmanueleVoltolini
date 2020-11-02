@@ -7,18 +7,25 @@ var my_room = {
 	edges: [
 		{x_a:0, y_a:0, x_b:10,y_b:0, reflect : 0.1},
 		{x_a:10,y_a:0, x_b:10,y_b:10,reflect : 0.5},
-		{x_a:10,y_a:10,x_b:0, y_b:10,reflect : 0.5},
-		{x_a:0, y_a:10,x_b:0, y_b:0, reflect : 0.9}
+		{x_a:10,y_a:10,x_b:0, y_b:10,reflect : 0.7},
+		{x_a:0, y_a:10,x_b:0, y_b:0, reflect : 1}
 	]
 }
 saved_rooms = [my_room];
 var real_source = [2,1];
-var N_iter = 3;
-receiver = {x:1,y:1};
+var N_iter = 0;
+receiver = {x:1,y:2};
 ///////////////////////////////////////////////////////////////////////////
 
+//CONSTANT
 var schermata_attuale = 0;
-
+var sound_velocity = 340;  // [m/s]
+var reflections = {delays: [], magnitude:[], colors: [], iter: []};
+var signal_pow = 100;
+var color = ["#000000","#0000FF","#DC143C","#00FFFF","#00FF00","#FFA500","#DDA0DD","#2E8B57","#FFFF00","#EE82EE",
+			  "#008080","#800000","#FFB6C1","#FFD700","#696969","#1E90FF","#FFE4C4","#FF6347","#F5F5F5","#CD853F"];
+var iteration = ["Direct path","First iteration","Second iteration", "Third iteration", "Fourth iteration", "Fifth iteration", "Sixth iteration","Seventh iteration"];
+var iter_labels = []
 ///////////////////////////////////////////////////////////////////////////
 //////////////////////////////CONTROLLER///////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
@@ -55,7 +62,57 @@ function render_schermata(idx){
         schermata_4.style.display = "inline";
     }
     if (idx==4){
-        schermata_5.style.display = "inline";
+		schermata_5.style.display = "inline";
+		////////////////////////////////////////CHART CODE////////////////////////////////////////////
+		var ctx_chart = document.getElementById('delayChart').getContext('2d');  //create a ctx for the chart
+		data_approx();  								//approximation of the data in order to have a better visualization of the delays
+		barChart = new Chart(ctx_chart, {               //creation of the new chart
+			type:'bar',
+			data: {
+				labels: reflections.delays,
+				datasets:[
+
+				]
+			},
+			options: {
+				legend: {
+						display: true,
+				},
+				title: {
+				  display: true,
+				  text: 'Room Impulse Response'
+				},
+				scales: {
+					xAxes: [{
+						stacked: true
+					}],
+					yAxes: [{
+						stacked: true
+					}]
+				}
+			}
+
+		});
+		//for cycle to fill the dataset dynamically
+		for(i=0;i<=N_iter;i++){
+			var data_mag = [];
+			var color_data = [];
+			for(j=0;j<reflections.delays.length;j++){
+				color_data.push(color[i]);
+				if(reflections.iter[j]==i){
+					data_mag.push(reflections.magnitude[j]);
+				}
+				else{
+					data_mag.push(0);  //add value 0 for the value != num iter that we are considering
+				}
+			}
+			addData(barChart,iter_labels[i],data_mag,color_data); //call the function to fill the chart
+		}
+		//////////////////////////////////////////////END OF CHART CODE//////////////////////////////////////////////////////
+	}
+	if (idx==5){
+		schermata_6.style.display = "inline";
+		setup_simulation2();
     }
 }
 var ctx = canvas.getContext("2d");
@@ -270,6 +327,7 @@ function save_room(){
 	}
 	
 	/// SOMEHOW PUSH TO DATABASE
+	my_room = room; //DEBUG
 
 	schermata_attuale = 0;
 	render_schermata(schermata_attuale);
@@ -277,80 +335,87 @@ function save_room(){
 
 ///////////////////////////////////////////////////////////////////////////
 ////////////////////////////////RIR SIM FRONTEND///////////////////////////
+////////////////////////////////METODO ORLANDYNO///////////////////////////
 ///////////////////////////////////////////////////////////////////////////
+
+//RIR SIM DATA OBJECT
+var big_rir_sim;
 
 //RIR SIM CONTROLLER
 function setup_simulation(){
-	room_names_container.style.display = "inline";
-	saved_rooms.forEach(create_buttons);
 	RIR_canvas.height = window.innerHeight-20;
 	RIR_canvas.width  = window.innerWidth -20;
+	render_all(RIR_iteration(my_room,real_source,0));
 }
-function create_buttons(obj,idx){
-	this_div = document.createElement('div');
-	this_div.innerHTML = obj.name;
-	this_div.classList.add("room_name");
-	room_names_container.appendChild(this_div);
-	this_div.onclick = function(){
-		room = saved_rooms[idx];
-		room_names_container.style.display = "none";
-	}
+function prev_iter(){
+	N_iter--;
+	big_rir_sim = RIR_iteration(my_room,real_source,0);
+	render_all(big_rir_sim);
+}
+function next_iter(){
+	N_iter++;
+	big_rir_sim = RIR_iteration(my_room,real_source,0);
+	render_all(big_rir_sim);
 }
 
 //RIR SIM RENDER
 var ctx_rir = RIR_canvas.getContext("2d");
-
 var x_center = Math.round(window.innerWidth/2);			//
 var y_center = Math.round(window.innerHeight/2);		// scaling variables init
 var scale = 10;											//
 
 function render_all(virtual_sources){
+	clear_canvas();
 	var extremes = {x_max:0,x_min:0,y_max:0,y_min:0}; //evaluate center and scaling factor
-	for (j=0;j<virtual_sources.length;j++){
-		this_list = virtual_sources[j];
-		for (k=0;k<this_list.length;k++){
-			this_VS = this_list[k];
-			this_VS.room.points.forEach(function (obj){//check for max/min x/y
-				if (obj.x > extremes.x_max){extremes.x_max = obj.x;}
-				if (obj.x < extremes.x_min){extremes.x_min = obj.x;}
-				if (obj.y > extremes.y_max){extremes.y_max = obj.y;}
-				if (obj.y < extremes.y_min){extremes.y_max = obj.y;}
+	for (ja=0;ja<virtual_sources.length;ja++){
+		this_list = virtual_sources[ja];
+		for (ka=0;ka<this_list.length;ka++){
+			this_VS = this_list[ka];
+			this_VS.room.edges.forEach(function (obj){//check for max/min x/y
+				if (obj.x_a > extremes.x_max){extremes.x_max = obj.x_a;}
+				if (obj.x_a < extremes.x_min){extremes.x_min = obj.x_a;}
+				if (obj.y_a > extremes.y_max){extremes.y_max = obj.y_a;}
+				if (obj.y_a < extremes.y_min){extremes.y_min = obj.y_a;}
+				if (obj.x_b > extremes.x_max){extremes.x_max = obj.x_b;}
+				if (obj.x_b < extremes.x_min){extremes.x_min = obj.x_b;}
+				if (obj.y_b > extremes.y_max){extremes.y_max = obj.y_b;}
+				if (obj.y_b < extremes.y_min){extremes.y_min = obj.y_b;}
 			})
-			
 		}
 	}
 	//set scale_factor/center
 	drawWidth = extremes.x_max - extremes.x_min;
 	drawHeight = extremes.y_max - extremes.y_min;
-	scale = Math.floor(Math.min(window.innerHeight/drawHeight,window.innerWidth/drawWidth)*0.8);
-	x_center = Math.round(window.innerWidth/2) - scale*Math.round(drawWidth/2);
-	y_center = Math.round(window.innerHeight/2) - scale*Math.round(drawHeight/2);
+	scale = Math.floor(Math.min(RIR_canvas.height/drawHeight,RIR_canvas.width/drawWidth)*0.95);
+
+	x_center = Math.round(RIR_canvas.width/2 - scale*(extremes.x_max + extremes.x_min)/2);
+	y_center = Math.round(RIR_canvas.height/2 - scale*(extremes.y_max + extremes.y_min)/2);
 	//actual render
 	for (j=0;j<virtual_sources.length;j++){
 		this_list = virtual_sources[j];
 		for (k=0;k<this_list.length;k++){
 			this_VS = this_list[k];
-			render_room(this_VS.room,"red");
+			render_room(this_VS.room,this_VS.source,"red");
 			render_source(this_VS.source.x,this_VS.source.y);
 		}
 	}
 	render_receiver(receiver.x,receiver.y);
 }
-
-function render_room(room_,color){
+function render_room(room_,source_,color){
 	var N = room_.edges.length;
 	ctx_rir.fillStyle = color;
 	ctx_rir.globalAlpha = 1;
 	ctx_rir.beginPath();
-	ctx_rir.moveTo(room_.points[0].x*scale+x_center,room_.points[0].y*scale+y_center);
+	ctx_rir.moveTo(room_.edges[0].x_a*scale+x_center,room_.edges[0].y_a*scale+y_center);
 	for (i=0;i<N;i++){
-		ctx_rir.lineTo(room_.points[i+1].x*scale+x_center,room_.points[i+1].y*scale+y_center);
-		ctx_rir.lineWidth = 10*room_.edges[i].reflect;
+		ctx_rir.lineTo(room_.edges[i].x_b*scale+x_center,room_.edges[i].y_b*scale+y_center);
+		ctx_rir.lineWidth = Math.round(20*room_.edges[i].reflect) + 'px';
 		ctx_rir.stroke();
 	}
 	ctx_rir.closePath();
 	ctx_rir.globalAlpha = 0.5;
 	ctx_rir.fill();
+	render_source(source_[0],source_[1]);
 }
 function render_receiver(x,y){
 	ctx_rir.globalAlpha = 1;
@@ -360,16 +425,255 @@ function render_receiver(x,y){
 	ctx_rir.stroke();
 	ctx_rir.fillStyle = "black";
 	ctx_rir.fill();
+	ctx_rir.closePath();
 }
 function render_source(x,y){
 	ctx_rir.globalAlpha = 1;
 	ctx_rir.drawImage(dino,scale*x+x_center,scale*y+y_center);
 }
 
+///////////////////////////////////////////////////////////////////////////
+////////////////////////////////RIR SIM FRONTEND///////////////////////////
+//////////////////////////////////METODO SARTI/////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+
+//RIR SIM DATA OBJECT
+var big_rir_sim;
+var show_path = false;
+var animations = false;
+var animationTimer;
+var animationPhase = 0;
+var prev_status = {};//for zoom management
+var next_status = {};
+var N_frames = 10;
+
+//RIR SIM CONTROLLER
+function setup_simulation2(){
+	RIR_canvas2.height = window.innerHeight-20;
+	RIR_canvas2.width  = window.innerWidth -20;
+	RIR_canvas3.height = window.innerHeight-20;
+	RIR_canvas3.width  = window.innerWidth -20;
+	RIR_canvas3.style.display = "none";
+	big_rir_sim = RIR_iteration_source(my_room,real_source,[receiver.x,receiver.y]);
+	scale_and_center(big_rir_sim);
+	render_all_source(big_rir_sim);
+	draw_path(big_rir_sim,receiver);
+}
+function prev_iter_source(){
+	N_iter--;
+	big_rir_sim = RIR_iteration_source(my_room,real_source,[receiver.x,receiver.y]);
+	scale_and_center(big_rir_sim);
+	render_all_source(big_rir_sim);
+	draw_path(big_rir_sim,receiver);
+}
+function next_iter_source(){
+	N_iter++;
+	big_rir_sim = RIR_iteration_source(my_room,real_source,[receiver.x,receiver.y]);
+	animationPhase = 0;
+
+	prev_status.scale = scale;	//SAVE OLD ZOOM STATUS
+	prev_status.x = x_center;
+	prev_status.y = y_center;
+	scale_and_center(big_rir_sim);//SET NEW ZOOM STATUS
+	next_status.scale = scale;	//SAVE NEW ZOOM STATUS
+	next_status.x = x_center;
+	next_status.y = y_center;
+
+	if (animations){animationTimer = setInterval(draw_animation,100);}
+	else{
+		scale_and_center(big_rir_sim);
+		render_all_source(big_rir_sim);
+		draw_path(big_rir_sim,receiver);
+	}
+}
+function show_hide_path(){
+	show_path = !show_path;
+	if (show_path){
+		pathbutton.innerHTML = "HIDE PATHS";
+		RIR_canvas3.style.display = "";
+	}
+	else {
+		pathbutton.innerHTML = "SHOW PATHS";
+		RIR_canvas3.style.display = "none";
+	}
+}
+function toggle_animation(){
+	animations = !animations;
+}
+
+//RIR SIM RENDER
+var ctx_rir2 = RIR_canvas2.getContext("2d");
+var ctx_rir3 = RIR_canvas3.getContext("2d");
+var x_center = Math.round(window.innerWidth/2);			//
+var y_center = Math.round(window.innerHeight/2);		// scaling variables init
+var scale;											    //
+
+function scale_and_center(virtual_sources){
+	var extremes = {x_max:0,x_min:0,y_max:0,y_min:0};
+	my_room.edges.forEach(function(obj){
+		if (obj.x_a>extremes.x_max){extremes.x_max = obj.x_a;}
+		if (obj.x_a<extremes.x_min){extremes.x_min = obj.x_a;}
+		if (obj.y_a>extremes.y_max){extremes.y_max = obj.y_a;}
+		if (obj.y_a<extremes.y_min){extremes.y_min = obj.y_a;}
+	})
+	for (ja=0;ja<virtual_sources.length;ja++){
+		this_list = virtual_sources[ja];
+		for (ka=0;ka<this_list.length;ka++){
+			this_VS = this_list[ka];
+			sx = this_VS.source[0];
+			sy = this_VS.source[1];
+			if (sx > extremes.x_max){extremes.x_max = sx;}
+			if (sx < extremes.x_min){extremes.x_min = sx;}
+			if (sy > extremes.y_max){extremes.y_max = sy;}
+			if (sy < extremes.y_min){extremes.y_min = sy;}
+		}
+	}
+	//set scale_factor/center
+	drawWidth = extremes.x_max - extremes.x_min;
+	drawHeight = extremes.y_max - extremes.y_min;
+	scale = Math.min(RIR_canvas2.height/drawHeight,RIR_canvas2.width/drawWidth)*0.92;
+	x_center = Math.round(RIR_canvas2.width/2 - scale*(extremes.x_max + extremes.x_min)/2);
+	y_center = Math.round(RIR_canvas2.height/2 - scale*(extremes.y_max + extremes.y_min)/2);
+}
+function render_all_source(virtual_sources){
+	clear_canvas();
+	render_room2(my_room,virtual_sources[0][0].source,"red");
+	my_room.edges.forEach(draw_line);
+	for (j=0;j<virtual_sources.length;j++){
+		this_list = virtual_sources[j];
+		for (k=0;k<this_list.length;k++){
+			this_VS = this_list[k];
+			render_source2(this_VS.source[0],this_VS.source[1]);
+		}
+	}
+	render_receiver2(receiver.x,receiver.y);
+}
+function render_room2(room_,source_,color){
+	var N = room_.edges.length;
+	ctx_rir2.fillStyle = color;
+	ctx_rir2.globalAlpha = 1;
+	ctx_rir2.beginPath();
+	ctx_rir2.moveTo(room_.edges[0].x_a*scale+x_center,room_.edges[0].y_a*scale+y_center);
+	for (i=0;i<N;i++){
+		ctx_rir2.lineTo(room_.edges[i].x_b*scale+x_center,room_.edges[i].y_b*scale+y_center);
+		ctx_rir2.lineWidth = Math.round(20*room_.edges[i].reflect) + 'px';
+		ctx_rir2.stroke();
+	}
+	ctx_rir2.closePath();
+	ctx_rir2.globalAlpha = 0.5;
+	ctx_rir2.fill();
+	render_source2(source_[0],source_[1]);
+}
+function render_receiver2(x,y){
+	ctx_rir2.globalAlpha = 1;
+	ctx_rir2.strokeStyle = 'black';
+	ctx_rir2.moveTo(scale*x+x_center,scale*y+y_center+5);
+	ctx_rir2.beginPath();
+	ctx_rir2.arc(scale*x+x_center,scale*y+y_center+5,5,0,2*Math.PI);
+	ctx_rir2.stroke();
+	ctx_rir2.fillStyle = "black";
+	ctx_rir2.fill();
+	ctx_rir2.closePath();
+}
+function render_source2(x,y){
+	ctx_rir2.globalAlpha = 1;
+	ctx_rir2.drawImage(dino,scale*x+x_center,scale*y+y_center);
+}
+function clear_canvas(){
+	ctx_rir.clearRect(0, 0, RIR_canvas.width, RIR_canvas.height);
+	ctx_rir2.clearRect(0, 0, RIR_canvas2.width, RIR_canvas2.height);
+}
+function draw_line(edge){
+	ctx_rir2.beginPath();
+	if (Math.abs(edge.x_b - edge.x_a) > Math.abs(edge.y_b - edge.y_a)){// rette "orizzontali"
+		m = (edge.y_b - edge.y_a) / (edge.x_b - edge.x_a);
+		q = edge.y_a - m*edge.x_a;
+		h_0 = q*scale + y_center - (x_center * m);
+		h_end = h_0 + m*RIR_canvas2.width;
+		ctx_rir2.strokeStyle = 'blue';
+		ctx_rir2.lineWidth = '5px';
+		ctx_rir2.moveTo(0,h_0);
+		ctx_rir2.lineTo(RIR_canvas2.width,h_end);
+		ctx_rir2.stroke();
+	}
+	else{// rette "verticali"
+		co_m = (edge.x_b - edge.x_a)/(edge.y_b - edge.y_a);
+		co_q = edge.x_a - co_m*edge.y_a;
+		j_0 = co_q*scale + x_center - (y_center * co_m);
+		j_end = j_0 + co_m*RIR_canvas2.height;
+		ctx_rir2.strokeStyle = 'blue';
+		ctx_rir2.lineWidth = '5px';
+		ctx_rir2.moveTo(j_0,0);
+		ctx_rir2.lineTo(j_end,RIR_canvas2.height);
+		ctx_rir2.stroke();
+	}
+	ctx_rir2.closePath();
+}
+function draw_path(virtual_sources,receiver){
+	ctx_rir3.clearRect(0, 0, RIR_canvas2.width, RIR_canvas2.height);
+	ctx_rir3.beginPath();
+	ctx_rir3.strokeStyle = 'grey';
+	ctx_rir3.moveTo(receiver.x*scale+x_center,receiver.y*scale+y_center);
+	for (ij=0;ij<virtual_sources.length;ij++){
+		this_list = virtual_sources[ij];
+		for (ik=0;ik<this_list.length;ik++){
+			this_VS = this_list[ik]
+			if (!this_VS.audible){
+				ctx_rir3.moveTo(receiver.x*scale+x_center,receiver.y*scale+y_center);//go to receiver
+				ctx_rir3.lineTo(this_VS.source[0]*scale+x_center,this_VS.source[1]*scale+y_center);//line to source
+				ctx_rir3.stroke();
+			}
+		}
+	}
+	ctx_rir3.closePath();
+	ctx_rir3.beginPath();
+	ctx_rir3.strokeStyle = 'yellow';
+	for (ij=0;ij<virtual_sources.length;ij++){
+		this_list = virtual_sources[ij];
+		for (ik=0;ik<this_list.length;ik++){
+			this_VS = this_list[ik]
+			if (this_VS.audible){
+				ctx_rir3.moveTo(receiver.x*scale+x_center,receiver.y*scale+y_center);//go to receiver
+				ctx_rir3.lineTo(this_VS.source[0]*scale+x_center,this_VS.source[1]*scale+y_center);//line to source
+				ctx_rir3.stroke();
+			}
+		}
+	}
+	ctx_rir3.closePath();
+}
+function draw_animation(){
+	//linear interpolations
+	x_center = (1-animationPhase/N_frames)*prev_status.x + (animationPhase/N_frames)*next_status.x;
+	y_center = (1-animationPhase/N_frames)*prev_status.y + (animationPhase/N_frames)*next_status.y;
+	scale = (1-animationPhase/N_frames)*prev_status.scale + (animationPhase/N_frames)*next_status.scale;
+	///start animation
+	old_sim = big_rir_sim.slice(0,big_rir_sim.length-1);
+	render_all_source(old_sim);
+	draw_path(old_sim,receiver);
+	/////end animation
+	if (animationPhase>= N_frames){
+		clearInterval(animationTimer);
+		scale_and_center(big_rir_sim);
+		render_all_source(big_rir_sim);
+		draw_path(big_rir_sim,receiver);
+	}
+	animationPhase++;
+}
+function addData(chart, label_chart, data_chart, color_chart) {
+//	console.log(color)
+	var dataset = {
+			data : data_chart,
+			backgroundColor : color_chart,
+			label : label_chart
+		}
+    chart.data.datasets.push(dataset,);
+    chart.update();
+}
+
 /*TODO LIST
 
--contorni delle room
--ondine del dinosauro
+-Capire dove si mette la sorgente!!
+-Sistemare FSM con tutte le features
 */
 
 ///////////////////////////////////////////////////////////////////////////
@@ -377,6 +681,45 @@ function render_source(x,y){
 ///////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////FUNCTION DECLARATION///////////////////////////////
+
+function bubbleSort(){                                       //function used to sort the reflection array accordingly with the delays
+    let len = reflections.delays.length;
+    let swapped;
+    do {
+        swapped = false;
+        for (let i = 0; i < len; i++) {
+            if (reflections.delays[i] > reflections.delays[i + 1]) {
+				let tmp_delay = reflections.delays[i];
+				let tmp_mag = reflections.magnitude[i];
+				let tmp_col = reflections.colors[i];
+				let tmp_iter = reflections.iter[i];
+				reflections.delays[i] = reflections.delays[i + 1];
+				reflections.magnitude[i] = reflections.magnitude[i + 1];
+				reflections.colors[i] = reflections.colors[i + 1];
+				reflections.iter[i] = reflections.iter[i + 1];
+				reflections.delays[i + 1] = tmp_delay;
+				reflections.magnitude[i + 1] = tmp_mag;
+				reflections.colors[i + 1] = tmp_col;
+				reflections.iter[i + 1] = tmp_iter;				
+                swapped = true;
+            }
+        }
+    } while (swapped);
+};
+
+function data_approx(){
+	for(k=0;k<reflections.delays.length;k++){
+		reflections.delays[k] = Math.round(reflections.delays[k]*10000)/10000;
+		reflections.magnitude[k] = Math.round(reflections.magnitude[k]*10000)/10000;	
+	}
+}
+function point_distance(point_a,point_b){
+	var distance;
+	var x = point_a[0] - point_b[0]
+	var y =	point_a[1] - point_b[1];
+	distance = Math.sqrt(Math.pow(x,2) + Math.pow(y,2));
+	return distance;
+}
 
 function mirror_point(edge,source){    
     var x_out;
@@ -400,7 +743,6 @@ function mirror_point(edge,source){
     }
     return [x_out,y_out]
 }
-
 function mirror_segment(segment,mirror){
     var mirror_segment;
     var p_a = mirror_point(mirror, [segment.x_a,segment.y_a]);
@@ -408,17 +750,6 @@ function mirror_segment(segment,mirror){
     mirror_segment = {x_a: p_a[0],y_a: p_a[1],x_b: p_b[0],y_b: p_b[1],reflect: segment.reflect};
     return mirror_segment
 }
-
-function mirror_room(room,edge){
-    var mirror_edge;
-    var m_room = [];
-    for(i=0;i<room.edges.length;i++){
-        mirror_edge = mirror_segment(room.edges[i],edge);
-        m_room.push(mirror_edge);
-    }
-    return {edges: m_room}
-}
-
 function intersection(edge,point_a,point_b){
     var y_int;
     var x_int;
@@ -427,14 +758,16 @@ function intersection(edge,point_a,point_b){
     var q_edge;
     var m_edge;
     //check the case when the edge is vertical
-    if (edge.x_a == edge.x_b && (point_a[0] != point_b[0] || point_a[1] != point_b[1])){
-        y_int = edge.y_a;
-        x_int = (point_b[0] - point_a[0]) * ((y_int - point_a[1])/(point_b[1] - point_a[1])) + point_a[0];
-    }
-    //check the case when the edge is horizontal
-    else if (edge.y_a == edge.y_b && (point_a[0] != point_b[0] || point_a[1] != point_b[1])){
+    if (edge.x_a == edge.x_b && (point_a[0] != point_b[0] || point_a[1] != point_b[1]) && (Math.max(point_a[0],point_b[0])>edge.x_a) && (Math.min(point_a[0],point_b[0])<edge.x_a)){
         x_int = edge.x_a;
         y_int = (point_b[1] - point_a[1]) * ((x_int - point_a[0])/(point_b[0] - point_a[0])) + point_a[1];
+        return [x_int,y_int];
+    }
+    //check the case when the edge is horizontal
+    else if (edge.y_a == edge.y_b && (point_a[0] != point_b[0] || point_a[1] != point_b[1]) && Math.max(point_a[1],point_b[1])>edge.y_a && Math.min(point_a[1],point_b[1])<edge.y_a){
+        y_int = edge.y_a;
+        x_int = (point_b[0] - point_a[0]) * ((y_int - point_a[1])/(point_b[1] - point_a[1])) + point_a[0];
+        return [x_int,y_int];
     }
     else if (point_a[0] == point_b[0]){             //case in which the segment AB is vertical
         if (edge.x_a == edge.x_b){                  //case parallel segments
@@ -442,7 +775,8 @@ function intersection(edge,point_a,point_b){
         }
         else if (edge.y_a == edge.y_b){             //case AB is vertical and edge is horizontal
             if (point_a[0]<= Math.max(edge.x_a,edge.x_b) && point_a[0]>= Math.min(edge.x_a,edge.x_b)){
-                return [x_int,y_int];
+                x_int = point_a[0];
+                y_int = edge.y_a;
             }
             else{return 0}
         }
@@ -457,7 +791,8 @@ function intersection(edge,point_a,point_b){
         }
         else if (edge.x_a == edge.x_b){             //case AB is horizontal and edge is vertical
             if (point_a[1]<= Math.max(edge.y_a,edge.y_b) && point_a[1]>= Math.min(edge.y_a,edge.y_b)){
-                return [x_int,y_int];
+                x_int = edge.x_a;
+                y_int = point_a[1];
             }
             else{return 0}
         }
@@ -474,14 +809,92 @@ function intersection(edge,point_a,point_b){
         x_int = (q_ab - q_edge)/(m_edge - m_ab);
         y_int = m_ab * x_int + q_ab;
     }          
-    if((Math.min(edge.x_a,edge.x_b)<=x_int && Math.max(edge.x_a,edge.x_b)>=x_int)||(Math.min(edge.y_a,edge.y_b)<=y_int && Math.max(edge.y_a,edge.y_b)>=y_int)){
+    if((Math.min(edge.x_a,edge.x_b)<=x_int && Math.max(edge.x_a,edge.x_b)>=x_int)&&(Math.min(edge.y_a,edge.y_b)<=y_int && Math.max(edge.y_a,edge.y_b)>=y_int && x_int && y_int)){
         return [x_int,y_int];
     }
     else{
         return 0;
     }
 }
+function RIR_iteration_source(room,source,receiver){
+    var virtual_sources = [];
+    var this_iteration = [];
+    var virt_source;
+    var reflect_edge;
+    var virt_length;
+    virtual_sources.push([{source: source, edge: -1, parent : null, audible: true, attenuation: 1, time: -1, iter: 0}]);
+    for (idx=1;idx <= N_iter;idx++){
+        virt_length = virtual_sources[idx-1].length;
+        for(n=0;n<virt_length;n++){
+            source = virtual_sources[idx-1][n].source;
+            reflect_edge = virtual_sources[idx-1][n].edge;
+            for(j=0;j<room.edges.length;j++){
+                if(reflect_edge != j){    
+					virt_source = mirror_point(room.edges[j],source);
+					atten = virtual_sources[idx-1][n].attenuation * room.edges[j].reflect
+                    this_iteration.push({source: virt_source, edge: j, parent: virtual_sources[idx-1][n],audible: true, attenuation: atten, time: -1, iter: idx});
+                }
+            }
+        }  
+        virtual_sources.push(this_iteration);  
+        this_iteration = [];
+    }
 
+	virtual_sources = audibility_check(room, virtual_sources, receiver);
+	virtual_sources = time_distance(virtual_sources,receiver);
+
+    return virtual_sources;
+}
+function audibility_check(room,v_sources,receiver){
+    var s = [];
+    var s_prev = [];
+    var current_edge;
+    var b_inter;
+    var a_inter;
+    for(q=0;q<room.edges.length;q++){
+        if (intersection(room.edges[q],v_sources[0][0].source,receiver) != 0){
+            v_sources[0][0].audible = false;
+        };
+    }
+    for(g=v_sources.length-1;g>=1;g--){
+        for(l=v_sources[g].length-1;l>=0;l--){
+            current_edge = v_sources[g][l].edge;
+            s = v_sources[g][l].source;
+
+            s_prev = v_sources[g][l].parent.source;
+            prev_edge = v_sources[g][l].parent.edge;
+            b_inter = intersection(room.edges[current_edge],s,receiver);
+            if(prev_edge != -1){
+                if ( b_inter!= 0){
+                    a_inter = intersection(room.edges[prev_edge],b_inter,s_prev);
+                    if ( a_inter==0){
+                        v_sources[g][l].audible = false;
+                    }
+                }
+                else{
+                    v_sources[g][l].audible = false;
+                };
+            }
+            else{
+                for(q=0;q<room.edges.length;q++){
+                    if (intersection(room.edges[q],b_inter,receiver) != 0 && v_sources[g][l].audible != false && q!=current_edge){
+                        v_sources[g][l].audible = false;
+                    }
+                }
+            }
+        }
+    }
+    return v_sources
+}
+function mirror_room(room,edge){
+    var mirror_edge;
+    var m_room = [];
+    for(i=0;i<room.edges.length;i++){
+        mirror_edge = mirror_segment(room.edges[i],edge);
+        m_room.push(mirror_edge);
+    }
+    return {edges: m_room}
+}
 function RIR_iteration(room,source,receiver){
     var virtual_sources = [];
     var this_iteration =[];
@@ -509,4 +922,35 @@ function RIR_iteration(room,source,receiver){
     }
     return virtual_sources;
 }
-
+function time_distance(virt_sources,receiver){
+	var s;
+	var dist;
+	var t;
+	var delay;
+	virt_sources[0][0].time = point_distance(real_source,receiver) / sound_velocity;
+	iter_labels.push(iteration[0]);
+	if (virt_sources[0][0].audible == true){
+	reflections.delays.push(virt_sources[0][0].time);
+	reflections.magnitude.push(virt_sources[0][0].attenuation*signal_pow)
+	reflections.colors.push(color[0]);
+	reflections.iter.push(0);
+	}
+	for(i=1;i<virt_sources.length;i++){
+		iter_labels.push(iteration[i]);
+		for(j=0;j<virt_sources[i].length;j++){
+			s = virt_sources[i][j].source;
+			dist = point_distance(s,receiver);
+			t = dist/sound_velocity;
+			delay = t + virt_sources[i][j].parent.time;
+			virt_sources[i][j].time = delay;
+			if (virt_sources[i][j].audible==true){
+				reflections.delays.push(delay);
+				reflections.magnitude.push(virt_sources[i][j].attenuation*signal_pow);
+				reflections.colors.push(color[virt_sources[i][j].iter]);
+				reflections.iter.push(virt_sources[i][j].iter);
+			}
+		}
+	}
+	bubbleSort();
+	return virt_sources;
+}
