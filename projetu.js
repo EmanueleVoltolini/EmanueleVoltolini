@@ -508,6 +508,10 @@ function save_room(){
 	
 	/// SOMEHOW PUSH TO DATABASE
 	my_room = room; //DEBUG
+	real_source[0] = grid.translate(editor_active_objects.RS_x,editor_active_objects.RS_y).x;
+	real_source[1] = grid.translate(editor_active_objects.RS_x,editor_active_objects.RS_y).y;
+	receiver.x = grid.translate(editor_active_objects.R_x,editor_active_objects.R_y).x;
+	receiver.y = grid.translate(editor_active_objects.R_x,editor_active_objects.R_y).y;
 	my_ULA.x = grid.translate(editor_active_objects.ULA_x,editor_active_objects.ULA_y).x;
 	my_ULA.y = grid.translate(editor_active_objects.ULA_x,editor_active_objects.ULA_y).y;
 	my_ULA.angle = editor_active_objects.ULA_angle;
