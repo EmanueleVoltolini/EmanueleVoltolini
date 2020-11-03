@@ -1055,7 +1055,10 @@ function audibility_check(room,v_sources,receiver){
     var a_inter;
     for(q=0;q<room.edges.length;q++){
         if (intersection(room.edges[q],v_sources[0][0].source,receiver) != 0){
-            v_sources[0][0].audible = false;
+			v_sources[0][0].audible = false;
+			console.log(room.edges[q])
+			console.log(v_sources[0][0].source)
+			console.log(receiver)
         };
     }
     for(g=v_sources.length-1;g>=1;g--){
