@@ -15,7 +15,7 @@ saved_rooms = [my_room];
 var real_source = [2,1];
 var N_iter = 0;
 receiver = {x:1,y:2};
-var my_ULA = {x:0,y:0,angle:0,aperture:1,N_mic:10};
+var my_ULA = {x:5,y:0,angle:0,aperture:10,N_mic:10};
 ///////////////////////////////////////////////////////////////////////////
 
 //CONSTANT
@@ -59,56 +59,11 @@ function render_schermata(idx){
 		setup_simulation();
     }
     if (idx==3){
-        schermata_4.style.display = "inline";
+		schermata_4.style.display = "inline";
+		ULA_data = ULA_simulation(my_room,real_source,my_ULA);
     }
     if (idx==4){
 		schermata_5.style.display = "inline";
-		////////////////////////////////////////CHART CODE////////////////////////////////////////////
-		var ctx_chart = document.getElementById('delayChart').getContext('2d');  //create a ctx for the chart
-		data_approx();  								//approximation of the data in order to have a better visualization of the delays
-		barChart = new Chart(ctx_chart, {               //creation of the new chart
-			type:'bar',
-			data: {
-				labels: reflections.delays,
-				datasets:[
-
-				]
-			},
-			options: {
-				legend: {
-						display: true,
-				},
-				title: {
-				  display: true,
-				  text: 'Room Impulse Response'
-				},
-				scales: {
-					xAxes: [{
-						stacked: true
-					}],
-					yAxes: [{
-						stacked: true
-					}]
-				}
-			}
-
-		});
-		//for cycle to fill the dataset dynamically
-		for(i=0;i<=N_iter;i++){
-			var data_mag = [];
-			var color_data = [];
-			for(j=0;j<reflections.delays.length;j++){
-				color_data.push(color[i]);
-				if(reflections.iter[j]==i){
-					data_mag.push(reflections.magnitude[j]);
-				}
-				else{
-					data_mag.push(0);  //add value 0 for the value != num iter that we are considering
-				}
-			}
-			addData(barChart,iter_labels[i],data_mag,color_data); //call the function to fill the chart
-		}
-		//////////////////////////////////////////////END OF CHART CODE//////////////////////////////////////////////////////
 	}
 	if (idx==5){
 		schermata_6.style.display = "inline";
@@ -118,6 +73,7 @@ function render_schermata(idx){
 		document.body.style.cursor = 'wait';//NOT WORKING!!!
 		schermata_7.style.display = "inline";
 		full_simulation_single_receiver();
+		fillChart();
 		document.body.style.cursor = 'default';
     }
 }
@@ -234,6 +190,7 @@ function render_objects_editor(){//mostra gli oggetti già inseriti
 		ctx3.closePath();
 	}
 }
+
 
 //EDITOR DATA OBJECTS
 var Shape = function() {
@@ -508,6 +465,10 @@ function save_room(){
 	
 	/// SOMEHOW PUSH TO DATABASE
 	my_room = room; //DEBUG
+	real_source[0] = grid.translate(editor_active_objects.RS_x,editor_active_objects.RS_y).x;
+	real_source[1] = grid.translate(editor_active_objects.RS_x,editor_active_objects.RS_y).y;
+	receiver.x = grid.translate(editor_active_objects.R_x,editor_active_objects.R_y).x;
+	receiver.y = grid.translate(editor_active_objects.R_x,editor_active_objects.R_y).y;
 	my_ULA.x = grid.translate(editor_active_objects.ULA_x,editor_active_objects.ULA_y).x;
 	my_ULA.y = grid.translate(editor_active_objects.ULA_x,editor_active_objects.ULA_y).y;
 	my_ULA.angle = editor_active_objects.ULA_angle;
@@ -642,6 +603,7 @@ var animationPhase = 0;
 var prev_status = {};//for zoom management
 var next_status = {};
 var N_frames = 10;
+var ULA_data = [];
 
 //RIR SIM CONTROLLER
 function setup_simulation2(){
@@ -866,6 +828,54 @@ function addData(chart, label_chart, data_chart, color_chart) {
     chart.data.datasets.push(dataset,);
     chart.update();
 }
+function fillChart(){
+	////////////////////////////////////////CHART CODE////////////////////////////////////////////
+	var ctx_chart = document.getElementById('delayChart').getContext('2d');  //create a ctx for the chart
+	data_approx();  								//approximation of the data in order to have a better visualization of the delays
+	barChart = new Chart(ctx_chart, {               //creation of the new chart
+		type:'bar',
+		data: {
+			labels: reflections.delays,
+			datasets:[
+
+			]
+		},
+		options: {
+			legend: {
+					display: true,
+			},
+			title: {
+			  display: true,
+			  text: 'Room Impulse Response'
+			},
+			scales: {
+				xAxes: [{
+					stacked: true
+				}],
+				yAxes: [{
+					stacked: true
+				}]
+			}
+		}
+
+	});
+	//for cycle to fill the dataset dynamically
+	for(i=0;i<=N_iter;i++){
+		var data_mag = [];
+		var color_data = [];
+		for(j=0;j<reflections.delays.length;j++){
+			color_data.push(color[i]);
+			if(reflections.iter[j]==i){
+				data_mag.push(reflections.magnitude[j]);
+			}
+			else{
+				data_mag.push(0);  //add value 0 for the value != num iter that we are considering
+			}
+		}
+		addData(barChart,iter_labels[i],data_mag,color_data); //call the function to fill the chart
+	}
+	//////////////////////////////////////////////END OF CHART CODE//////////////////////////////////////////////////////
+}
 
 /*TODO LIST
 -salvataggio/caricamento dati
@@ -907,8 +917,7 @@ function bubbleSort(){                                       //function used to 
             }
         }
     } while (swapped);
-};
-
+}
 function data_approx(){
 	for(k=0;k<reflections.delays.length;k++){
 		reflections.delays[k] = Math.round(reflections.delays[k]*10000)/10000;
@@ -922,7 +931,6 @@ function point_distance(point_a,point_b){
 	distance = Math.sqrt(Math.pow(x,2) + Math.pow(y,2));
 	return distance;
 }
-
 function mirror_point(edge,source){    
     var x_out;
     var y_out;                   
@@ -1132,21 +1140,24 @@ function time_distance(virt_sources,receiver){
 	var dist;
 	var t;
 	var delay;
-	virt_sources[0][0].time = point_distance(real_source,receiver) / sound_velocity;
+	dist = point_distance(real_source,[receiver.x,receiver.y]);
+	virt_sources[0][0].time = dist / sound_velocity;
+	virt_sources[0][0].attenuation = virt_sources[0][0].attenuation / dist;
 	iter_labels.push(iteration[0]);
 	if (virt_sources[0][0].audible == true){
-	reflections.delays.push(virt_sources[0][0].time);
-	reflections.magnitude.push(virt_sources[0][0].attenuation*signal_pow)
-	reflections.colors.push(color[0]);
-	reflections.iter.push(0);
+		reflections.delays.push(virt_sources[0][0].time);
+		reflections.magnitude.push(virt_sources[0][0].attenuation*signal_pow)
+		reflections.colors.push(color[0]);
+		reflections.iter.push(0);
 	}
 	for(i=1;i<virt_sources.length;i++){
 		iter_labels.push(iteration[i]);
 		for(j=0;j<virt_sources[i].length;j++){
-			s = virt_sources[i][j].source;
-			dist = point_distance(s,receiver);
+			s = virt_sources[i][j];
+			dist = point_distance(s.source,s.parent.source);
 			t = dist/sound_velocity;
 			delay = t + virt_sources[i][j].parent.time;
+			s.attenuation = s.attenuation / (delay*sound_velocity);
 			virt_sources[i][j].time = delay;
 			if (virt_sources[i][j].audible==true){
 				reflections.delays.push(delay);
@@ -1160,11 +1171,12 @@ function time_distance(virt_sources,receiver){
 	return virt_sources;
 }
 function ULA_simulation(room,source,ULA){
+	N_iter = 5;
 	var responses = [];
-	var this_receiver = [];
+	var this_receiver = {};
 	for (mic_idx = 0; mic_idx<ULA.N_mic; mic_idx++){
-		this_receiver[0] = ULA.x-Math.cos(ULA.angle)*0.5*ULA.aperture + mic_idx*ULA.aperture*Math.cos(ULA.angle)/(ULA.N_mic-1);
-		this_receiver[1] = ULA.y-Math.sin(ULA.angle)*0.5*ULA.aperture + mic_idx*ULA.aperture*Math.sin(ULA.angle)/(ULA.N_mic-1);
+		this_receiver.x = ULA.x-Math.cos(ULA.angle)*0.5*ULA.aperture + mic_idx*ULA.aperture*Math.cos(ULA.angle)/(ULA.N_mic-1);
+		this_receiver.y = ULA.y-Math.sin(ULA.angle)*0.5*ULA.aperture + mic_idx*ULA.aperture*Math.sin(ULA.angle)/(ULA.N_mic-1);
 		
 		var big_tree = RIR_iteration_source(room,source,this_receiver);
 		big_tree = time_distance(big_tree,this_receiver);
@@ -1196,11 +1208,9 @@ function compile_buffer(v_sources){
 	}
 }
 function full_simulation_single_receiver(){
-	N_iter = 10;
-	var sim = RIR_iteration_source(my_room,real_source,receiver);
-	sim = audibility_check(my_room,sim,receiver);
-	sim = time_distance(sim,receiver);
-	compile_buffer(sim);
+	N_iter = 12;
+	big_rir_sim = RIR_iteration_source(my_room,real_source,receiver);
+	compile_buffer(big_rir_sim);
 }
 ///////////////////////////////////////////////////////////////////////////
 /////////////////////////////////AUDIO PLAYOUT/////////////////////////////
