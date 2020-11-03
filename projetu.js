@@ -1011,7 +1011,7 @@ function intersection(edge,point_a,point_b){
         x_int = (q_ab - q_edge)/(m_edge - m_ab);
         y_int = m_ab * x_int + q_ab;
     }          
-    if((Math.min(edge.x_a,edge.x_b)<=x_int && Math.max(edge.x_a,edge.x_b)>=x_int)&&(Math.min(edge.y_a,edge.y_b)<=y_int && Math.max(edge.y_a,edge.y_b)>=y_int && x_int && y_int)){
+	if((Math.min(point_a[0],point_b[0])<=x_int && Math.max(point_a[0],point_b[0])>=x_int)&&(Math.min(point_a[1],point_b[1])<=y_int && Math.max(point_a[1],point_b[1])>=y_int && x_int && y_int)){
         return [x_int,y_int];
     }
     else{
