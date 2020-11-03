@@ -52,8 +52,6 @@
 </div>
 
 <div class = schermata id = schermata_3>
-    RIR SIMULATION
-    LOAD ROOM
     <canvas id=RIR_canvas></canvas>
     <div class='buttoncontainer'>
         <button class = "buttons" onclick = prev_iter()>PREVIOUS</button>
@@ -68,9 +66,6 @@
 <div class = schermata id = schermata_5>
     DYNOSOURCE by Tyno and Orlandone <br>
     Stay minimal
-    <div>
-    <canvas id="delayChart"></canvas>
-    </div>
 </div>
 
 <div class = schermata id = schermata_6>
@@ -86,6 +81,9 @@
 </div>
 
 <div class = schermata id = schermata_7>
+    <div>
+        <canvas id="delayChart"></canvas>
+    </div>
     <button onclick=play_buffer()>PLAY IMPULSE RESPONSE</button>
     <button onclick="elephant_input.play()">PLAY ELEPHANT SNARL</button>
     <button onclick=convolve(0)>SIMULATE ACOUSTICS</button>
@@ -99,8 +97,8 @@
 <img src= "source_water.png" class="dinos"></img>
 <img src= "source_yellow.png" class="dinos"></img>
 
-<audio src="elephant_snarl.wav" id = elephant_input></audio>
+<audio  src="elephant_snarl.wav" id = elephant_input></audio>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.0"></script>
-
+<script src=https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.3.0/math.min.js></script>
 
 <script src="projetu.js"></script>
