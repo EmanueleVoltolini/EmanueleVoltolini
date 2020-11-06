@@ -1019,7 +1019,10 @@ function intersection(edge,point_a,point_b){
         x_int = (q_ab - q_edge)/(m_edge - m_ab);
         y_int = m_ab * x_int + q_ab;
     }          
-	if((Math.min(point_a[0],point_b[0])<=x_int && Math.max(point_a[0],point_b[0])>=x_int)&&(Math.min(point_a[1],point_b[1])<=y_int && Math.max(point_a[1],point_b[1])>=y_int && x_int && y_int)){
+	if( (Math.min(point_a[0],point_b[0])<=x_int && Math.max(point_a[0],point_b[0])>=x_int) &&
+		(Math.min(point_a[1],point_b[1])<=y_int && Math.max(point_a[1],point_b[1])>=y_int) && 
+		(Math.min(edge.x_a  ,edge.x_b  )<=x_int && Math.max(edge.x_a  ,edge.x_b  )>=x_int) &&
+		(Math.min(edge.y_a  ,edge.y_b  )<=y_int && Math.max(edge.y_a  ,edge.y_b  )>=y_int) 		) {
         return [x_int,y_int];
     }
     else{
@@ -1056,19 +1059,23 @@ function RIR_iteration_source(room,source,receiver){
     return virtual_sources;
 }
 function audibility_check(room,v_sources,receiver){
+	this_illuminator_in_path = [];
+	/*
     var s = [];
     var s_prev = [];
     var current_edge;
     var b_inter;
-    var a_inter;
+	var a_inter;
+	*/
     for(q=0;q<room.edges.length;q++){
         if (intersection(room.edges[q],v_sources[0][0].source,receiver) != 0){
 			v_sources[0][0].audible = false;
-			console.log(room.edges[q])
+			/*console.log(room.edges[q])
 			console.log(v_sources[0][0].source)
-			console.log(receiver)
-        };
-    }
+			console.log(receiver)*/
+        }
+	}
+	/*
     for(g=v_sources.length-1;g>=1;g--){
         for(l=v_sources[g].length-1;l>=0;l--){
             current_edge = v_sources[g][l].edge;
@@ -1096,7 +1103,43 @@ function audibility_check(room,v_sources,receiver){
                 }
             }
         }
-    }
+	}*/
+	for(g=1; g<v_sources.length;g++){
+        for(l=0;l<v_sources[g].length;l++){
+			this_source = v_sources[g][l];
+			this_point_in_path = this_source;    		//initialization
+			this_illuminator_in_path = [...receiver]; 	//initialization
+			while(this_point_in_path.parent !== null){  //until we arrive to the real source
+				edge_idx = this_point_in_path.edge;
+				edge = room.edges[edge_idx];			//get the right edge for reflection 
+				p_int = intersection(edge,this_illuminator_in_path,this_point_in_path.source);//and the point of reflection
+				if (p_int == 0){ 				//no possible reflection?
+					this_source.audible = false;//kill this path. source inaudible
+					break;						//no need to go on
+				}								//otherwise
+				for (q=0;q<room.edges.length;q++){//for any edge
+					if (q == edge_idx){continue;} //that is not the right one for reflection
+					if (q == this_point_in_path.parent.edge){continue;}
+					obstacle = room.edges[q];	  //let's call it obstacle
+					if (intersection(obstacle,this_illuminator_in_path,p_int)!=0){ //check if it crosses the path
+						this_source.audible = false;
+						break;
+					}
+				}
+				this_illuminator_in_path = [...p_int];			//update
+				this_point_in_path = this_point_in_path.parent;	//update
+			}
+			if (this_source.audible){//no need to enter here if source is unaudible
+				for (q=0;q<room.edges.length;q++){//last part of the while loop is cut away: do the last check!
+					obstacle = room.edges[q];
+					if (intersection(obstacle,this_illuminator_in_path,v_sources[0][0].source)!=0){
+						this_source.audible = false;
+						break;
+					}
+				}
+			}
+		}
+	}
     return v_sources
 }
 function mirror_room(room,edge){
