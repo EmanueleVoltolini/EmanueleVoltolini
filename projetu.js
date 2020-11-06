@@ -50,26 +50,26 @@ function render_schermata(idx){
 	if (idx==0){
         schermata_1.style.display = "inline";
     }
-    if (idx==1){
+    if (idx==1){//EDIT
         schermata_2.style.display = "inline";
         open_editor();
     }
-    if (idx==2){
+    if (idx==2){//SIMULATION
 		schermata_3.style.display = "inline";
 		setup_simulation();
     }
-    if (idx==3){
+    if (idx==3){//ULA
 		schermata_4.style.display = "inline";
 		ULA_data = ULA_simulation(my_room,real_source,my_ULA);
     }
-    if (idx==4){
+    if (idx==4){//CREDITS
 		schermata_5.style.display = "inline";
 	}
-	if (idx==5){
+	if (idx==5){//SARTI
 		schermata_6.style.display = "inline";
 		setup_simulation2();
 	}
-	if (idx==6){
+	if (idx==6){//OUTPUT
 		document.body.style.cursor = 'wait';//NOT WORKING!!!
 		schermata_7.style.display = "inline";
 		full_simulation_single_receiver();
@@ -499,6 +499,7 @@ var big_rir_sim;
 
 //RIR SIM CONTROLLER
 function setup_simulation(){
+	N_iter = 0;
 	RIR_canvas.height = window.innerHeight-20;
 	RIR_canvas.width  = window.innerWidth -20;
 	render_all(RIR_iteration(my_room,real_source,0));
@@ -607,6 +608,7 @@ var ULA_data = [];
 
 //RIR SIM CONTROLLER
 function setup_simulation2(){
+	N_iter = 0;
 	RIR_canvas2.height = window.innerHeight-20;
 	RIR_canvas2.width  = window.innerWidth -20;
 	RIR_canvas3.height = window.innerHeight-20;
@@ -878,12 +880,13 @@ function fillChart(){
 }
 
 /*TODO LIST
--salvataggio/caricamento dati
--Sistemare FSM con tutte le features
+-salvataggio/caricamento dati -> capire DB con orlandone
+-Sistemare FSM con tutte le features -> dopo il successivo
 	-save
 	-load
--Sistemare audibility check
--Frontend ULA
+-Frontend ULA -> grafici? informazioni? capire con orlandone
+-Backend ULA
+-Sistemare output audio
 */
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1186,7 +1189,7 @@ function time_distance(virt_sources,receiver){
 	var dist;
 	var t;
 	var delay;
-	dist = point_distance(real_source,[receiver.x,receiver.y]);
+	dist = point_distance(real_source,receiver);
 	virt_sources[0][0].time = dist / sound_velocity;
 	virt_sources[0][0].attenuation = virt_sources[0][0].attenuation / dist;
 	iter_labels.push(iteration[0]);
@@ -1224,8 +1227,7 @@ function ULA_simulation(room,source,ULA){
 		this_receiver.x = ULA.x-Math.cos(ULA.angle)*0.5*ULA.aperture + mic_idx*ULA.aperture*Math.cos(ULA.angle)/(ULA.N_mic-1);
 		this_receiver.y = ULA.y-Math.sin(ULA.angle)*0.5*ULA.aperture + mic_idx*ULA.aperture*Math.sin(ULA.angle)/(ULA.N_mic-1);
 		
-		var big_tree = RIR_iteration_source(room,source,this_receiver);
-		big_tree = time_distance(big_tree,this_receiver);
+		var big_tree = RIR_iteration_source(room,source,[this_receiver.x,this_receiver.y]);
 		
 		var this_response = [];
 		for (hh=0;hh<big_tree.length;hh++){
@@ -1254,8 +1256,8 @@ function compile_buffer(v_sources){
 	}
 }
 function full_simulation_single_receiver(){
-	N_iter = 12;
-	big_rir_sim = RIR_iteration_source(my_room,real_source,receiver);
+	N_iter = 10;
+	big_rir_sim = RIR_iteration_source(my_room,real_source,[receiver.x,receiver.y]);
 	compile_buffer(big_rir_sim);
 }
 ///////////////////////////////////////////////////////////////////////////

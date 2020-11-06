@@ -25,6 +25,7 @@
             <button onclick = "open_editor()">CANCEL</button>
             <input id=nome_stanza type = "text"></input>
             <button onclick = "save_room()">SAVE</button>
+            <button onclick="render_schermata(0)">BACK</button>
             <br>REAL SOURCE
             <button onclick = "click_source()">CLICK</button>
             <div class=coord_container>
@@ -56,20 +57,22 @@
     <div class='buttoncontainer'>
         <button class = "buttons" onclick = prev_iter()>PREVIOUS</button>
         <button class = "buttons" onclick = next_iter()>NEXT</button>
+        <button class = "buttons" onclick="render_schermata(0)">BACK</button>
     </div>
 </div>
 
 <div class = schermata id = schermata_4>
     MICROPHONE ARRAY
+    <button onclick="render_schermata(0)">BACK</button>
 </div>
 
 <div class = schermata id = schermata_5>
     DYNOSOURCE by Tyno and Orlandone <br>
     Stay minimal
+    <button onclick="render_schermata(0)">BACK</button>
 </div>
 
 <div class = schermata id = schermata_6>
-    METODO SARTI
     <canvas id=RIR_canvas2></canvas>
     <canvas id=RIR_canvas3></canvas>
     <div class='buttoncontainer'>
@@ -77,6 +80,7 @@
         <button class = "buttons" onclick = next_iter_source()>NEXT</button>
         <button id='pathbutton' class = "buttons" onclick = show_hide_path()>SHOW PATHS</button>
         <button class = "buttons" onclick = toggle_animation()>ANIMATION</button>
+        <button onclick="render_schermata(0)">BACK</button>
     </div>
 </div>
 
@@ -87,6 +91,7 @@
     <button onclick=play_buffer()>PLAY IMPULSE RESPONSE</button>
     <button onclick="elephant_input.play()">PLAY ELEPHANT SNARL</button>
     <button onclick=convolve(0)>SIMULATE ACOUSTICS</button>
+    <button onclick="render_schermata(0)">BACK</button>
 </div>
 
 <img src= "source.png" class="dinos"></img>
