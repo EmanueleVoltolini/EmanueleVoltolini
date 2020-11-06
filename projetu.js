@@ -1019,10 +1019,10 @@ function intersection(edge,point_a,point_b){
         x_int = (q_ab - q_edge)/(m_edge - m_ab);
         y_int = m_ab * x_int + q_ab;
     }          
-	if( (Math.min(point_a[0],point_b[0])<=x_int && Math.max(point_a[0],point_b[0])>=x_int) &&
-		(Math.min(point_a[1],point_b[1])<=y_int && Math.max(point_a[1],point_b[1])>=y_int) && 
-		(Math.min(edge.x_a  ,edge.x_b  )<=x_int && Math.max(edge.x_a  ,edge.x_b  )>=x_int) &&
-		(Math.min(edge.y_a  ,edge.y_b  )<=y_int && Math.max(edge.y_a  ,edge.y_b  )>=y_int) 		) {
+	if( (Math.min(point_a[0],point_b[0])<x_int && Math.max(point_a[0],point_b[0])>x_int) &&
+		(Math.min(point_a[1],point_b[1])<y_int && Math.max(point_a[1],point_b[1])>y_int) && 
+		(Math.min(edge.x_a  ,edge.x_b  )<x_int && Math.max(edge.x_a  ,edge.x_b  )>x_int) &&
+		(Math.min(edge.y_a  ,edge.y_b  )<y_int && Math.max(edge.y_a  ,edge.y_b  )>y_int) 		) {
         return [x_int,y_int];
     }
     else{
@@ -1109,6 +1109,7 @@ function audibility_check(room,v_sources,receiver){
 			this_source = v_sources[g][l];
 			this_point_in_path = this_source;    		//initialization
 			this_illuminator_in_path = [...receiver]; 	//initialization
+			prev_illuminator_edge_idx = -1;				//init. to avoid approximation errors
 			while(this_point_in_path.parent !== null){  //until we arrive to the real source
 				edge_idx = this_point_in_path.edge;
 				edge = room.edges[edge_idx];			//get the right edge for reflection 
@@ -1119,7 +1120,7 @@ function audibility_check(room,v_sources,receiver){
 				}								//otherwise
 				for (q=0;q<room.edges.length;q++){//for any edge
 					if (q == edge_idx){continue;} //that is not the right one for reflection
-					if (q == this_point_in_path.parent.edge){continue;}
+					if (q == prev_illuminator_edge_idx){continue;}//nor the one on which stays the illuminator
 					obstacle = room.edges[q];	  //let's call it obstacle
 					if (intersection(obstacle,this_illuminator_in_path,p_int)!=0){ //check if it crosses the path
 						this_source.audible = false;
@@ -1128,9 +1129,11 @@ function audibility_check(room,v_sources,receiver){
 				}
 				this_illuminator_in_path = [...p_int];			//update
 				this_point_in_path = this_point_in_path.parent;	//update
+				prev_illuminator_edge_idx = edge_idx;			//update
 			}
 			if (this_source.audible){//no need to enter here if source is unaudible
 				for (q=0;q<room.edges.length;q++){//last part of the while loop is cut away: do the last check!
+					if (q==edge_idx){continue;}
 					obstacle = room.edges[q];
 					if (intersection(obstacle,this_illuminator_in_path,v_sources[0][0].source)!=0){
 						this_source.audible = false;
