@@ -60,7 +60,7 @@ function render_schermata(idx){
     }
     if (idx==3){//ULA
 		schermata_4.style.display = "inline";
-		ULA_data = ULA_simulation(my_room,real_source,my_ULA);
+		full_simulation_ULA();
     }
     if (idx==4){//CREDITS
 		schermata_5.style.display = "inline";
@@ -1219,7 +1219,7 @@ function time_distance(virt_sources,receiver){
 	bubbleSort();
 	return virt_sources;
 }
-function ULA_simulation(room,source,ULA){
+function ULA_responses(room,source,ULA){
 	N_iter = 5;
 	var responses = [];
 	var this_receiver = {};
@@ -1259,6 +1259,80 @@ function full_simulation_single_receiver(){
 	N_iter = 10;
 	big_rir_sim = RIR_iteration_source(my_room,real_source,[receiver.x,receiver.y]);
 	compile_buffer(big_rir_sim);
+}
+function SignalsClass(){
+	this.to_complex = function (input_array){//complex "real" numbers
+		var output_array = [];
+		input_array.forEach(function(val,idx){
+			output_array[idx] = new math.complex(val,0);
+		})
+		return output_array;
+	}
+	this.to_cartesian = function (p){//for nthRoots, it's in polar coords
+		re = p.r * Math.cos(p.phi);
+		im = p.r * Math.sin(p.phi);
+		c = new math.complex(re,im);
+		return c;
+	}
+	this.FFT = function (input_array){//no need to explain
+		if (input_array.length == 1){return input_array;}//base step for recursion
+		else {
+			complex_1 = math.complex(1,0);
+			var W = this.to_cartesian(math.nthRoot(complex_1,input_array.length)[1]);
+			var w_e = [];
+			var w_o = [];
+			var even_array = [];
+			var odd_array = [];
+			for (y=0;y<input_array.length;y+=2){ //compile even and odd arrays
+				even_array.push(input_array[y]);
+				odd_array.push(input_array[y+1]);
+			}
+			for (y=0;y<input_array.length/2;y++){w_e.push(math.pow(W,y));}//compile coefficients array
+			for (y=input_array.length/2;y<input_array.length;y++){w_o.push(math.pow(W,y));}
+			var E = this.FFT(even_array);//recursion
+			var O = this.FFT(odd_array); //recursion
+			var out_1 = math.add(E,math.dotMultiply(O,w_e));//coefficients
+			var out_2 = math.add(E,math.dotMultiply(O,w_o));
+			return out_1.concat(out_2);
+		}
+	}
+	this.pad = function (input_array,n){//zero padding
+		input_array = input_array.slice(0,n);
+		output = new Array(n).fill(0);
+		input_array.forEach(function(val,idx){
+			output[idx] = val;
+		})
+		return output;
+	}
+	this.convolve = function (array_1,array_2){
+		window1 = [...array_1];
+		window2 = [...array_2];
+		window1 = this.pad(window1,array_1.length+array_2.length-1);
+		for (k=1;k<array_2.length;k++){
+			window1[-k] = math.complex(0,0);
+		}
+		output = [];
+		for (z=-array_2.length+1; z<array_1.length;z++){
+			var sum = math.complex(0,0);
+			for (j=0;j<array_2.length;j++){
+				sum =math.add(sum, math.multiply(window1[j+z],window2[j]));
+			}
+			output.push(sum);
+		}
+		return output;
+	}
+	return this;
+}
+Signals = new SignalsClass();
+
+function full_simulation_ULA(){
+	var ULA_data_timeDomain = ULA_responses(my_room,real_source,my_ULA);
+	//convolve with narrow-band signal
+	var ULA_data_freqDomain = []; //init
+	ULA_data_timeDomain.forEach(function (data){//get the complex responses in freq domain
+		//PAD the freaking array
+		ULA_data_freqDomain.push(Signals.FFT(to_complex(data)));
+	})
 }
 ///////////////////////////////////////////////////////////////////////////
 /////////////////////////////////AUDIO PLAYOUT/////////////////////////////
