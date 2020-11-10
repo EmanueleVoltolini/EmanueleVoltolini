@@ -19,7 +19,6 @@ var my_ULA = {x:5,y:0,angle:0,aperture:10,N_mic:10};
 ///////////////////////////////////////////////////////////////////////////
 
 //CONSTANT
-var schermata_attuale = 0;
 var sound_velocity = 340;  // [m/s]
 var reflections = {delays: [], magnitude:[], colors: [], iter: []};
 var signal_pow = 100;
@@ -27,10 +26,15 @@ var color = ["#000000","#0000FF","#DC143C","#00FFFF","#00FF00","#FFA500","#DDA0D
 			  "#008080","#800000","#FFB6C1","#FFD700","#696969","#1E90FF","#FFE4C4","#FF6347","#F5F5F5","#CD853F"];
 var iteration = ["Direct path","First iteration","Second iteration", "Third iteration", "Fourth iteration", "Fifth iteration", "Sixth iteration","Seventh iteration"];
 var iter_labels = []
+
 ///////////////////////////////////////////////////////////////////////////
-////////////////////////////FSM CONTROLLER/////////////////////////////////
+//////////////////////////////////FSM//////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
+//FSM DATA OBJECTS
+var schermata_attuale = 0;
+
+//FSM CONTROLLER
 document.querySelectorAll(".selector").forEach(function(obj,idx){
     obj.onclick = function (){
         schermata_attuale = idx + 1;
@@ -38,11 +42,7 @@ document.querySelectorAll(".selector").forEach(function(obj,idx){
     }
 })
 
-///////////////////////////////////////////////////////////////////////////
-////////////////////////////////EDITOR/////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-
-//EDITOR RENDER
+//FSM RENDER
 function render_schermata(idx){
 	document.querySelectorAll(".schermata").forEach(
 		function(obj){obj.style.display = "none";}
@@ -77,6 +77,12 @@ function render_schermata(idx){
 		document.body.style.cursor = 'default';
     }
 }
+
+///////////////////////////////////////////////////////////////////////////
+////////////////////////////////EDITOR/////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+
+//EDITOR RENDER
 var ctx = canvas.getContext("2d");
 var ctx2 = canvas2.getContext("2d");
 var ctx3 = canvas3.getContext("2d");
@@ -494,7 +500,7 @@ function click_ULA(){
 ////////////////////////////////METODO ORLANDYNO///////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
-//RIR SIM DATA OBJECT
+//RIR SIM DATA OBJECTS
 var big_rir_sim;
 
 //RIR SIM CONTROLLER
@@ -595,7 +601,7 @@ function render_source(x,y){
 //////////////////////////////////METODO SARTI/////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
-//RIR SIM DATA OBJECT
+//RIR SIM DATA OBJECTS
 var big_rir_sim;
 var show_path = false;
 var animations = false;
@@ -885,19 +891,17 @@ function fillChart(){
 	-save
 	-load
 -Frontend ULA -> grafici? informazioni? capire con orlandone
--Backend ULA
+-Backend ULA (parametric)
 -Sistemare output audio
 */
 
 ///////////////////////////////////////////////////////////////////////////
 ////////////////////////////////RIR SIM BACKEND////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
+
 sound_velocity = 340;
 
-
-///////////////////////////////////////FUNCTION DECLARATION///////////////////////////////
-
-function bubbleSort(){                                       //function used to sort the reflection array accordingly with the delays
+function bubbleSort(){//function used to sort the reflection array accordingly with the delays
     let len = reflections.delays.length;
     let swapped;
     do {
@@ -1309,15 +1313,23 @@ function SignalsClass(){
 		window2 = [...array_2];
 		window1 = this.pad(window1,array_1.length+array_2.length-1);
 		for (k=1;k<array_2.length;k++){
-			window1[-k] = math.complex(0,0);
+			window1[-k] = 0;//math.complex(0,0);
 		}
 		output = [];
 		for (z=-array_2.length+1; z<array_1.length;z++){
-			var sum = math.complex(0,0);
+			var sum = 0;//math.complex(0,0);
 			for (j=0;j<array_2.length;j++){
-				sum =math.add(sum, math.multiply(window1[j+z],window2[j]));
+				sum = math.add(sum, math.multiply(window1[j+z],window2[j]));
 			}
 			output.push(sum);
+		}
+		return output;
+	}
+	this.sine = function (N,f){
+		var w_n = 2*Math.PI*f/audioCtx.sampleRate;
+		var output = [];
+		for (var e=0;e<N;e++){
+			output.push(Math.cos(w_n*e));
 		}
 		return output;
 	}
@@ -1325,14 +1337,47 @@ function SignalsClass(){
 }
 Signals = new SignalsClass();
 
-function full_simulation_ULA(){
-	var ULA_data_timeDomain = ULA_responses(my_room,real_source,my_ULA);
-	//convolve with narrow-band signal
+function full_simulation_ULA(freq,duration,step_degrees){
+	var duration_pow_2 = Math.pow(2,Math.ceil(Math.log2(duration)));
+	var sine = Signals.sine(duration_pow_2,freq);
+	var sine_fft = Signals.FFT(Signals.to_complex(sine));
+	var ULA_data = ULA_responses(my_room,real_source,my_ULA);//contains reflection objects
+	var ULA_data_timeDomain = []; //Sampled impulse response
 	var ULA_data_freqDomain = []; //init
-	ULA_data_timeDomain.forEach(function (data){//get the complex responses in freq domain
-		//PAD the freaking array
-		ULA_data_freqDomain.push(Signals.FFT(to_complex(data)));
-	})
+	for (var x=0;x<ULA_data.length;x++){
+		var this_row = ULA_data[x];
+		var this_output_row = new Array(duration).fill(0);
+		for (var y=0;y<this_row.length;y++){
+			var this_pulse = this_row[y];
+			if (this_pulse.time*audioCtx.sampleRate<duration){
+				this_output_row[Math.floor(this_pulse.time*audioCtx.sampleRate)] += this_pulse.attenuation;
+			}
+		}
+		this_output_row = Signals.pad(this_output_row,duration_pow_2);
+		ULA_data_timeDomain.push(this_output_row);
+		this_output_row = Signals.FFT(Signals.to_complex(this_output_row));
+		this_output_row = math.dotMultiply(this_output_row,sine_fft);
+		ULA_data_freqDomain.push(this_output_row);
+	}
+	//return ULA_data_freqDomain;
+	//finally GOT THE DATA from the mics
+	var omega_c = freq*2*Math.PI;
+	var d = my_ULA.aperture/(my_ULA.N_mic-1);
+	//DAS BEAMFORMER
+	var p_spectrum = [];
+	for (var theta=-90;theta<=90;theta+=step_degrees){
+		var omega_s = d*omega_c*Math.sin(Math.PI/180 * theta)/sound_velocity;
+		var a = [];
+		for (var c=0;c<my_ULA.N_mic;c++){
+			a.push(math.exp(math.multiply(math.complex(0,-1),c*omega_s)));
+		}//GOT the steering vector
+		var power = math.complex(0,0);
+		for (var c=0;c<my_ULA.N_mic;c++){
+			power = math.add(power,math.sum(math.multiply(a[c],ULA_data_freqDomain[c])));
+		}
+		p_spectrum.push(power.abs());
+	}
+	return p_spectrum;
 }
 ///////////////////////////////////////////////////////////////////////////
 /////////////////////////////////AUDIO PLAYOUT/////////////////////////////
