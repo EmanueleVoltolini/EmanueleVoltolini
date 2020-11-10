@@ -1,0 +1,8 @@
+POrtland =  gestione salvataggio room con firebase
+            funzione json.stringfy , json.parse
+            ennesimi bug grafici 
+Tyno     =  esprit/ metodi parametrici
+            buggino (un dunembuggy piccolino)
+            T60
+
+ci aggiorniamo (tipo cosa plottare e far vedere al Sartone)
