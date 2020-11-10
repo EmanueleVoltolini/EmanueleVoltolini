@@ -510,6 +510,10 @@ function save_room(){
 	
 	/// SOMEHOW PUSH TO DATABASE
 	my_room = room; //DEBUG
+	real_source[0] = grid.translate(editor_active_objects.RS_x,editor_active_objects.RS_y).x;
+	real_source[1] = grid.translate(editor_active_objects.RS_x,editor_active_objects.RS_y).y;
+	receiver.x = grid.translate(editor_active_objects.R_x,editor_active_objects.R_y).x;
+	receiver.y = grid.translate(editor_active_objects.R_x,editor_active_objects.R_y).y;
 	my_ULA.x = grid.translate(editor_active_objects.ULA_x,editor_active_objects.ULA_y).x;
 	my_ULA.y = grid.translate(editor_active_objects.ULA_x,editor_active_objects.ULA_y).y;
 	my_ULA.angle = editor_active_objects.ULA_angle;
@@ -881,8 +885,6 @@ function addData(chart, label_chart, data_chart, color_chart) {
 ///////////////////////////////////////////////////////////////////////////
 ////////////////////////////////RIR SIM BACKEND////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
-sound_velocity = 340;
-
 
 ///////////////////////////////////////FUNCTION DECLARATION///////////////////////////////
 
@@ -1013,7 +1015,7 @@ function intersection(edge,point_a,point_b){
         x_int = (q_ab - q_edge)/(m_edge - m_ab);
         y_int = m_ab * x_int + q_ab;
     }          
-    if((Math.min(edge.x_a,edge.x_b)<=x_int && Math.max(edge.x_a,edge.x_b)>=x_int)&&(Math.min(edge.y_a,edge.y_b)<=y_int && Math.max(edge.y_a,edge.y_b)>=y_int && x_int && y_int)){
+	if((Math.min(point_a[0],point_b[0])<=x_int && Math.max(point_a[0],point_b[0])>=x_int)&&(Math.min(point_a[1],point_b[1])<=y_int && Math.max(point_a[1],point_b[1])>=y_int && x_int && y_int)){
         return [x_int,y_int];
     }
     else{
