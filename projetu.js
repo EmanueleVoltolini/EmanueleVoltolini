@@ -17,11 +17,10 @@ saved_rooms = [my_room];
 var real_source = [2,1];
 var N_iter = 0;
 receiver = {x:1,y:2};
-var my_ULA = {x:0,y:0,angle:0,aperture:1,N_mic:10};
+var my_ULA = {x:5,y:0,angle:0,aperture:10,N_mic:10};
 ///////////////////////////////////////////////////////////////////////////
 
 //CONSTANT
-var schermata_attuale = 0;
 var sound_velocity = 340;  // [m/s]
 var reflections = {delays: [], magnitude:[], colors: [], iter: []};
 var signal_pow = 100;
@@ -29,10 +28,15 @@ var color = ["#000000","#0000FF","#DC143C","#00FFFF","#00FF00","#FFA500","#DDA0D
 			  "#008080","#800000","#FFB6C1","#FFD700","#696969","#1E90FF","#FFE4C4","#FF6347","#F5F5F5","#CD853F"];
 var iteration = ["Direct path","First iteration","Second iteration", "Third iteration", "Fourth iteration", "Fifth iteration", "Sixth iteration","Seventh iteration"];
 var iter_labels = []
+
 ///////////////////////////////////////////////////////////////////////////
-////////////////////////////FSM CONTROLLER/////////////////////////////////
+//////////////////////////////////FSM//////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
+//FSM DATA OBJECTS
+var schermata_attuale = 0;
+
+//FSM CONTROLLER
 document.querySelectorAll(".selector").forEach(function(obj,idx){
     obj.onclick = function (){
         schermata_attuale = idx + 1;
@@ -40,11 +44,7 @@ document.querySelectorAll(".selector").forEach(function(obj,idx){
     }
 })
 
-///////////////////////////////////////////////////////////////////////////
-////////////////////////////////EDITOR/////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-
-//EDITOR RENDER
+//FSM RENDER
 function render_schermata(idx){
 	document.querySelectorAll(".schermata").forEach(
 		function(obj){obj.style.display = "none";}
@@ -52,77 +52,39 @@ function render_schermata(idx){
 	if (idx==0){
         schermata_1.style.display = "inline";
     }
-    if (idx==1){
+    if (idx==1){//EDIT
         schermata_2.style.display = "inline";
         open_editor();
     }
-    if (idx==2){
+    if (idx==2){//SIMULATION
 		schermata_3.style.display = "inline";
 		setup_simulation();
     }
-    if (idx==3){
-        schermata_4.style.display = "inline";
+    if (idx==3){//ULA
+		schermata_4.style.display = "inline";
+		full_simulation_ULA();
     }
-    if (idx==4){
+    if (idx==4){//CREDITS
 		schermata_5.style.display = "inline";
-		////////////////////////////////////////CHART CODE////////////////////////////////////////////
-		var ctx_chart = document.getElementById('delayChart').getContext('2d');  //create a ctx for the chart
-		data_approx();  								//approximation of the data in order to have a better visualization of the delays
-		barChart = new Chart(ctx_chart, {               //creation of the new chart
-			type:'bar',
-			data: {
-				labels: reflections.delays,
-				datasets:[
-
-				]
-			},
-			options: {
-				legend: {
-						display: true,
-				},
-				title: {
-				  display: true,
-				  text: 'Room Impulse Response'
-				},
-				scales: {
-					xAxes: [{
-						stacked: true
-					}],
-					yAxes: [{
-						stacked: true
-					}]
-				}
-			}
-
-		});
-		//for cycle to fill the dataset dynamically
-		for(i=0;i<=N_iter;i++){
-			var data_mag = [];
-			var color_data = [];
-			for(j=0;j<reflections.delays.length;j++){
-				color_data.push(color[i]);
-				if(reflections.iter[j]==i){
-					data_mag.push(reflections.magnitude[j]);
-				}
-				else{
-					data_mag.push(0);  //add value 0 for the value != num iter that we are considering
-				}
-			}
-			addData(barChart,iter_labels[i],data_mag,color_data); //call the function to fill the chart
-		}
-		//////////////////////////////////////////////END OF CHART CODE//////////////////////////////////////////////////////
 	}
-	if (idx==5){
+	if (idx==5){//SARTI
 		schermata_6.style.display = "inline";
 		setup_simulation2();
 	}
-	if (idx==6){
+	if (idx==6){//OUTPUT
 		document.body.style.cursor = 'wait';//NOT WORKING!!!
 		schermata_7.style.display = "inline";
 		full_simulation_single_receiver();
+		fillChart();
 		document.body.style.cursor = 'default';
     }
 }
+
+///////////////////////////////////////////////////////////////////////////
+////////////////////////////////EDITOR/////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+
+//EDITOR RENDER
 var ctx = canvas.getContext("2d");
 var ctx2 = canvas2.getContext("2d");
 var ctx3 = canvas3.getContext("2d");
@@ -236,6 +198,7 @@ function render_objects_editor(){//mostra gli oggetti già inseriti
 		ctx3.closePath();
 	}
 }
+
 
 //EDITOR DATA OBJECTS
 var Shape = function() {
@@ -539,11 +502,12 @@ function click_ULA(){
 ////////////////////////////////METODO ORLANDYNO///////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
-//RIR SIM DATA OBJECT
+//RIR SIM DATA OBJECTS
 var big_rir_sim;
 
 //RIR SIM CONTROLLER
 function setup_simulation(){
+	N_iter = 0;
 	RIR_canvas.height = window.innerHeight-20;
 	RIR_canvas.width  = window.innerWidth -20;
 	render_all(RIR_iteration(my_room,real_source,0));
@@ -639,7 +603,7 @@ function render_source(x,y){
 //////////////////////////////////METODO SARTI/////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
-//RIR SIM DATA OBJECT
+//RIR SIM DATA OBJECTS
 var big_rir_sim;
 var show_path = false;
 var animations = false;
@@ -648,9 +612,11 @@ var animationPhase = 0;
 var prev_status = {};//for zoom management
 var next_status = {};
 var N_frames = 10;
+var ULA_data = [];
 
 //RIR SIM CONTROLLER
 function setup_simulation2(){
+	N_iter = 0;
 	RIR_canvas2.height = window.innerHeight-20;
 	RIR_canvas2.width  = window.innerWidth -20;
 	RIR_canvas3.height = window.innerHeight-20;
@@ -872,23 +838,72 @@ function addData(chart, label_chart, data_chart, color_chart) {
     chart.data.datasets.push(dataset,);
     chart.update();
 }
+function fillChart(){
+	////////////////////////////////////////CHART CODE////////////////////////////////////////////
+	var ctx_chart = document.getElementById('delayChart').getContext('2d');  //create a ctx for the chart
+	data_approx();  								//approximation of the data in order to have a better visualization of the delays
+	barChart = new Chart(ctx_chart, {               //creation of the new chart
+		type:'bar',
+		data: {
+			labels: reflections.delays,
+			datasets:[
+
+			]
+		},
+		options: {
+			legend: {
+					display: true,
+			},
+			title: {
+			  display: true,
+			  text: 'Room Impulse Response'
+			},
+			scales: {
+				xAxes: [{
+					stacked: true
+				}],
+				yAxes: [{
+					stacked: true
+				}]
+			}
+		}
+
+	});
+	//for cycle to fill the dataset dynamically
+	for(i=0;i<=N_iter;i++){
+		var data_mag = [];
+		var color_data = [];
+		for(j=0;j<reflections.delays.length;j++){
+			color_data.push(color[i]);
+			if(reflections.iter[j]==i){
+				data_mag.push(reflections.magnitude[j]);
+			}
+			else{
+				data_mag.push(0);  //add value 0 for the value != num iter that we are considering
+			}
+		}
+		addData(barChart,iter_labels[i],data_mag,color_data); //call the function to fill the chart
+	}
+	//////////////////////////////////////////////END OF CHART CODE//////////////////////////////////////////////////////
+}
 
 /*TODO LIST
--salvataggio/caricamento dati
--Sistemare FSM con tutte le features
+-salvataggio/caricamento dati -> capire DB con orlandone
+-Sistemare FSM con tutte le features -> dopo il successivo
 	-save
 	-load
--Sistemare audibility check
--Frontend ULA
+-Frontend ULA -> grafici? informazioni? capire con orlandone
+-Backend ULA (parametric)
+-Sistemare output audio
 */
 
 ///////////////////////////////////////////////////////////////////////////
 ////////////////////////////////RIR SIM BACKEND////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
-///////////////////////////////////////FUNCTION DECLARATION///////////////////////////////
+sound_velocity = 340;
 
-function bubbleSort(){                                       //function used to sort the reflection array accordingly with the delays
+function bubbleSort(){//function used to sort the reflection array accordingly with the delays
     let len = reflections.delays.length;
     let swapped;
     do {
@@ -911,8 +926,7 @@ function bubbleSort(){                                       //function used to 
             }
         }
     } while (swapped);
-};
-
+}
 function data_approx(){
 	for(k=0;k<reflections.delays.length;k++){
 		reflections.delays[k] = Math.round(reflections.delays[k]*10000)/10000;
@@ -926,7 +940,6 @@ function point_distance(point_a,point_b){
 	distance = Math.sqrt(Math.pow(x,2) + Math.pow(y,2));
 	return distance;
 }
-
 function mirror_point(edge,source){    
     var x_out;
     var y_out;                   
@@ -1015,7 +1028,10 @@ function intersection(edge,point_a,point_b){
         x_int = (q_ab - q_edge)/(m_edge - m_ab);
         y_int = m_ab * x_int + q_ab;
     }          
-	if((Math.min(point_a[0],point_b[0])<=x_int && Math.max(point_a[0],point_b[0])>=x_int)&&(Math.min(point_a[1],point_b[1])<=y_int && Math.max(point_a[1],point_b[1])>=y_int && x_int && y_int)){
+	if( (Math.min(point_a[0],point_b[0])<x_int && Math.max(point_a[0],point_b[0])>x_int) &&
+		(Math.min(point_a[1],point_b[1])<y_int && Math.max(point_a[1],point_b[1])>y_int) && 
+		(Math.min(edge.x_a  ,edge.x_b  )<x_int && Math.max(edge.x_a  ,edge.x_b  )>x_int) &&
+		(Math.min(edge.y_a  ,edge.y_b  )<y_int && Math.max(edge.y_a  ,edge.y_b  )>y_int) && x_int != null && y_int != null) {
         return [x_int,y_int];
     }
     else{
@@ -1052,16 +1068,23 @@ function RIR_iteration_source(room,source,receiver){
     return virtual_sources;
 }
 function audibility_check(room,v_sources,receiver){
+	this_illuminator_in_path = [];
+	/*
     var s = [];
     var s_prev = [];
     var current_edge;
     var b_inter;
-    var a_inter;
+	var a_inter;
+	*/
     for(q=0;q<room.edges.length;q++){
         if (intersection(room.edges[q],v_sources[0][0].source,receiver) != 0){
-            v_sources[0][0].audible = false;
-        };
-    }
+			v_sources[0][0].audible = false;
+			/*console.log(room.edges[q])
+			console.log(v_sources[0][0].source)
+			console.log(receiver)*/
+        }
+	}
+	/*
     for(g=v_sources.length-1;g>=1;g--){
         for(l=v_sources[g].length-1;l>=0;l--){
             current_edge = v_sources[g][l].edge;
@@ -1089,7 +1112,46 @@ function audibility_check(room,v_sources,receiver){
                 }
             }
         }
-    }
+	}*/
+	for(g=1; g<v_sources.length;g++){
+        for(l=0;l<v_sources[g].length;l++){
+			this_source = v_sources[g][l];
+			this_point_in_path = this_source;    		//initialization
+			this_illuminator_in_path = [...receiver]; 	//initialization
+			prev_illuminator_edge_idx = -1;				//init. to avoid approximation errors
+			while(this_point_in_path.parent !== null){  //until we arrive to the real source
+				edge_idx = this_point_in_path.edge;
+				edge = room.edges[edge_idx];			//get the right edge for reflection 
+				p_int = intersection(edge,this_illuminator_in_path,this_point_in_path.source);//and the point of reflection
+				if (p_int == 0){ 				//no possible reflection?
+					this_source.audible = false;//kill this path. source inaudible
+					break;						//no need to go on
+				}								//otherwise
+				for (q=0;q<room.edges.length;q++){//for any edge
+					if (q == edge_idx){continue;} //that is not the right one for reflection
+					if (q == prev_illuminator_edge_idx){continue;}//nor the one on which stays the illuminator
+					obstacle = room.edges[q];	  //let's call it obstacle
+					if (intersection(obstacle,this_illuminator_in_path,p_int)!=0){ //check if it crosses the path
+						this_source.audible = false;
+						break;
+					}
+				}
+				this_illuminator_in_path = [...p_int];			//update
+				this_point_in_path = this_point_in_path.parent;	//update
+				prev_illuminator_edge_idx = edge_idx;			//update
+			}
+			if (this_source.audible){//no need to enter here if source is unaudible
+				for (q=0;q<room.edges.length;q++){//last part of the while loop is cut away: do the last check!
+					if (q==edge_idx){continue;}
+					obstacle = room.edges[q];
+					if (intersection(obstacle,this_illuminator_in_path,v_sources[0][0].source)!=0){
+						this_source.audible = false;
+						break;
+					}
+				}
+			}
+		}
+	}
     return v_sources
 }
 function mirror_room(room,edge){
@@ -1133,21 +1195,24 @@ function time_distance(virt_sources,receiver){
 	var dist;
 	var t;
 	var delay;
-	virt_sources[0][0].time = point_distance(real_source,receiver) / sound_velocity;
+	dist = point_distance(real_source,receiver);
+	virt_sources[0][0].time = dist / sound_velocity;
+	virt_sources[0][0].attenuation = virt_sources[0][0].attenuation / dist;
 	iter_labels.push(iteration[0]);
 	if (virt_sources[0][0].audible == true){
-	reflections.delays.push(virt_sources[0][0].time);
-	reflections.magnitude.push(virt_sources[0][0].attenuation*signal_pow)
-	reflections.colors.push(color[0]);
-	reflections.iter.push(0);
+		reflections.delays.push(virt_sources[0][0].time);
+		reflections.magnitude.push(virt_sources[0][0].attenuation*signal_pow)
+		reflections.colors.push(color[0]);
+		reflections.iter.push(0);
 	}
 	for(i=1;i<virt_sources.length;i++){
 		iter_labels.push(iteration[i]);
 		for(j=0;j<virt_sources[i].length;j++){
-			s = virt_sources[i][j].source;
-			dist = point_distance(s,receiver);
+			s = virt_sources[i][j];
+			dist = point_distance(s.source,s.parent.source);
 			t = dist/sound_velocity;
 			delay = t + virt_sources[i][j].parent.time;
+			s.attenuation = s.attenuation / (delay*sound_velocity);
 			virt_sources[i][j].time = delay;
 			if (virt_sources[i][j].audible==true){
 				reflections.delays.push(delay);
@@ -1160,15 +1225,15 @@ function time_distance(virt_sources,receiver){
 	bubbleSort();
 	return virt_sources;
 }
-function ULA_simulation(room,source,ULA){
+function ULA_responses(room,source,ULA){
+	N_iter = 5;
 	var responses = [];
-	var this_receiver = [];
+	var this_receiver = {};
 	for (mic_idx = 0; mic_idx<ULA.N_mic; mic_idx++){
-		this_receiver[0] = ULA.x-Math.cos(ULA.angle)*0.5*ULA.aperture + mic_idx*ULA.aperture*Math.cos(ULA.angle)/(ULA.N_mic-1);
-		this_receiver[1] = ULA.y-Math.sin(ULA.angle)*0.5*ULA.aperture + mic_idx*ULA.aperture*Math.sin(ULA.angle)/(ULA.N_mic-1);
+		this_receiver.x = ULA.x-Math.cos(ULA.angle)*0.5*ULA.aperture + mic_idx*ULA.aperture*Math.cos(ULA.angle)/(ULA.N_mic-1);
+		this_receiver.y = ULA.y-Math.sin(ULA.angle)*0.5*ULA.aperture + mic_idx*ULA.aperture*Math.sin(ULA.angle)/(ULA.N_mic-1);
 		
-		var big_tree = RIR_iteration_source(room,source,this_receiver);
-		big_tree = time_distance(big_tree,this_receiver);
+		var big_tree = RIR_iteration_source(room,source,[this_receiver.x,this_receiver.y]);
 		
 		var this_response = [];
 		for (hh=0;hh<big_tree.length;hh++){
@@ -1198,10 +1263,123 @@ function compile_buffer(v_sources){
 }
 function full_simulation_single_receiver(){
 	N_iter = 10;
-	var sim = RIR_iteration_source(my_room,real_source,receiver);
-	sim = audibility_check(my_room,sim,receiver);
-	sim = time_distance(sim,receiver);
-	compile_buffer(sim);
+	big_rir_sim = RIR_iteration_source(my_room,real_source,[receiver.x,receiver.y]);
+	compile_buffer(big_rir_sim);
+}
+function SignalsClass(){
+	this.to_complex = function (input_array){//complex "real" numbers
+		var output_array = [];
+		input_array.forEach(function(val,idx){
+			output_array[idx] = new math.complex(val,0);
+		})
+		return output_array;
+	}
+	this.to_cartesian = function (p){//for nthRoots, it's in polar coords
+		re = p.r * Math.cos(p.phi);
+		im = p.r * Math.sin(p.phi);
+		c = new math.complex(re,im);
+		return c;
+	}
+	this.FFT = function (input_array){//no need to explain
+		if (input_array.length == 1){return input_array;}//base step for recursion
+		else {
+			complex_1 = math.complex(1,0);
+			var W = this.to_cartesian(math.nthRoot(complex_1,input_array.length)[1]);
+			var w_e = [];
+			var w_o = [];
+			var even_array = [];
+			var odd_array = [];
+			for (y=0;y<input_array.length;y+=2){ //compile even and odd arrays
+				even_array.push(input_array[y]);
+				odd_array.push(input_array[y+1]);
+			}
+			for (y=0;y<input_array.length/2;y++){w_e.push(math.pow(W,y));}//compile coefficients array
+			for (y=input_array.length/2;y<input_array.length;y++){w_o.push(math.pow(W,y));}
+			var E = this.FFT(even_array);//recursion
+			var O = this.FFT(odd_array); //recursion
+			var out_1 = math.add(E,math.dotMultiply(O,w_e));//coefficients
+			var out_2 = math.add(E,math.dotMultiply(O,w_o));
+			return out_1.concat(out_2);
+		}
+	}
+	this.pad = function (input_array,n){//zero padding
+		input_array = input_array.slice(0,n);
+		output = new Array(n).fill(0);
+		input_array.forEach(function(val,idx){
+			output[idx] = val;
+		})
+		return output;
+	}
+	this.convolve = function (array_1,array_2){
+		window1 = [...array_1];
+		window2 = [...array_2];
+		window1 = this.pad(window1,array_1.length+array_2.length-1);
+		for (k=1;k<array_2.length;k++){
+			window1[-k] = 0;//math.complex(0,0);
+		}
+		output = [];
+		for (z=-array_2.length+1; z<array_1.length;z++){
+			var sum = 0;//math.complex(0,0);
+			for (j=0;j<array_2.length;j++){
+				sum = math.add(sum, math.multiply(window1[j+z],window2[j]));
+			}
+			output.push(sum);
+		}
+		return output;
+	}
+	this.sine = function (N,f){
+		var w_n = 2*Math.PI*f/audioCtx.sampleRate;
+		var output = [];
+		for (var e=0;e<N;e++){
+			output.push(Math.cos(w_n*e));
+		}
+		return output;
+	}
+	return this;
+}
+Signals = new SignalsClass();
+
+function full_simulation_ULA(freq,duration,step_degrees){
+	var duration_pow_2 = Math.pow(2,Math.ceil(Math.log2(duration)));
+	var sine = Signals.sine(duration_pow_2,freq);
+	var sine_fft = Signals.FFT(Signals.to_complex(sine));
+	var ULA_data = ULA_responses(my_room,real_source,my_ULA);//contains reflection objects
+	var ULA_data_timeDomain = []; //Sampled impulse response
+	var ULA_data_freqDomain = []; //init
+	for (var x=0;x<ULA_data.length;x++){
+		var this_row = ULA_data[x];
+		var this_output_row = new Array(duration).fill(0);
+		for (var y=0;y<this_row.length;y++){
+			var this_pulse = this_row[y];
+			if (this_pulse.time*audioCtx.sampleRate<duration){
+				this_output_row[Math.floor(this_pulse.time*audioCtx.sampleRate)] += this_pulse.attenuation;
+			}
+		}
+		this_output_row = Signals.pad(this_output_row,duration_pow_2);
+		ULA_data_timeDomain.push(this_output_row);
+		this_output_row = Signals.FFT(Signals.to_complex(this_output_row));
+		this_output_row = math.dotMultiply(this_output_row,sine_fft);
+		ULA_data_freqDomain.push(this_output_row);
+	}
+	//return ULA_data_freqDomain;
+	//finally GOT THE DATA from the mics
+	var omega_c = freq*2*Math.PI;
+	var d = my_ULA.aperture/(my_ULA.N_mic-1);
+	//DAS BEAMFORMER
+	var p_spectrum = [];
+	for (var theta=-90;theta<=90;theta+=step_degrees){
+		var omega_s = d*omega_c*Math.sin(Math.PI/180 * theta)/sound_velocity;
+		var a = [];
+		for (var c=0;c<my_ULA.N_mic;c++){
+			a.push(math.exp(math.multiply(math.complex(0,-1),c*omega_s)));
+		}//GOT the steering vector
+		var power = math.complex(0,0);
+		for (var c=0;c<my_ULA.N_mic;c++){
+			power = math.add(power,math.sum(math.multiply(a[c],ULA_data_freqDomain[c])));
+		}
+		p_spectrum.push(power.abs());
+	}
+	return p_spectrum;
 }
 ///////////////////////////////////////////////////////////////////////////
 /////////////////////////////////AUDIO PLAYOUT/////////////////////////////

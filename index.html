@@ -25,6 +25,7 @@
             <button onclick = "open_editor()">CANCEL</button>
             <input id=nome_stanza type = "text"></input>
             <button onclick = "save_room()">SAVE</button>
+            <button onclick="render_schermata(0)">BACK</button>
             <br>REAL SOURCE
             <button onclick = "click_source()">CLICK</button>
             <div class=coord_container>
@@ -52,29 +53,26 @@
 </div>
 
 <div class = schermata id = schermata_3>
-    RIR SIMULATION
-    LOAD ROOM
     <canvas id=RIR_canvas></canvas>
     <div class='buttoncontainer'>
         <button class = "buttons" onclick = prev_iter()>PREVIOUS</button>
         <button class = "buttons" onclick = next_iter()>NEXT</button>
+        <button class = "buttons" onclick="render_schermata(0)">BACK</button>
     </div>
 </div>
 
 <div class = schermata id = schermata_4>
     MICROPHONE ARRAY
+    <button onclick="render_schermata(0)">BACK</button>
 </div>
 
 <div class = schermata id = schermata_5>
     DYNOSOURCE by Tyno and Orlandone <br>
     Stay minimal
-    <div>
-    <canvas id="delayChart"></canvas>
-    </div>
+    <button onclick="render_schermata(0)">BACK</button>
 </div>
 
 <div class = schermata id = schermata_6>
-    METODO SARTI
     <canvas id=RIR_canvas2></canvas>
     <canvas id=RIR_canvas3></canvas>
     <div class='buttoncontainer'>
@@ -82,13 +80,18 @@
         <button class = "buttons" onclick = next_iter_source()>NEXT</button>
         <button id='pathbutton' class = "buttons" onclick = show_hide_path()>SHOW PATHS</button>
         <button class = "buttons" onclick = toggle_animation()>ANIMATION</button>
+        <button onclick="render_schermata(0)">BACK</button>
     </div>
 </div>
 
 <div class = schermata id = schermata_7>
+    <div>
+        <canvas id="delayChart"></canvas>
+    </div>
     <button onclick=play_buffer()>PLAY IMPULSE RESPONSE</button>
     <button onclick="elephant_input.play()">PLAY ELEPHANT SNARL</button>
     <button onclick=convolve(0)>SIMULATE ACOUSTICS</button>
+    <button onclick="render_schermata(0)">BACK</button>
 </div>
 
 <img src= "source.png" class="dinos"></img>
@@ -99,8 +102,8 @@
 <img src= "source_water.png" class="dinos"></img>
 <img src= "source_yellow.png" class="dinos"></img>
 
-<audio src="elephant_snarl.wav" id = elephant_input></audio>
+<audio  src="elephant_snarl.wav" id = elephant_input></audio>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.0"></script>
-
+<script src=https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.3.0/math.min.js></script>
 
 <script src="projetu.js"></script>
