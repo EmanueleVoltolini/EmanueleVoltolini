@@ -901,8 +901,6 @@ function fillChart(){
 ////////////////////////////////RIR SIM BACKEND////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
-sound_velocity = 340;
-
 function bubbleSort(){//function used to sort the reflection array accordingly with the delays
     let len = reflections.delays.length;
     let swapped;
@@ -1195,6 +1193,8 @@ function time_distance(virt_sources,receiver){
 	var dist;
 	var t;
 	var delay;
+	reflections = {delays: [], magnitude:[], colors: [], iter: []};
+	iter_labels = [];
 	dist = point_distance(real_source,receiver);
 	virt_sources[0][0].time = dist / sound_velocity;
 	virt_sources[0][0].attenuation = virt_sources[0][0].attenuation / dist;
@@ -1226,7 +1226,7 @@ function time_distance(virt_sources,receiver){
 	return virt_sources;
 }
 function ULA_responses(room,source,ULA){
-	N_iter = 5;
+//	N_iter = 5;
 	var responses = [];
 	var this_receiver = {};
 	for (mic_idx = 0; mic_idx<ULA.N_mic; mic_idx++){
@@ -1262,7 +1262,7 @@ function compile_buffer(v_sources){
 	}
 }
 function full_simulation_single_receiver(){
-	N_iter = 10;
+//	N_iter = 10;
 	big_rir_sim = RIR_iteration_source(my_room,real_source,[receiver.x,receiver.y]);
 	compile_buffer(big_rir_sim);
 }
