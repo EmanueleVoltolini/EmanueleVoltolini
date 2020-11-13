@@ -916,6 +916,7 @@ function save_room_db(){
 	db.collection('Rooms').doc(my_room.name).set(my_room);
 }
 function display_saved_rooms(){
+	names = [];
 	db.collection('Rooms').get().then(
 		function(querySnapshot) {
 			querySnapshot.forEach(function(doc) {
