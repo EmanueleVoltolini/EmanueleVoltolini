@@ -6,6 +6,7 @@ var db = firebase.firestore();//initializes firebase
 ///////////////////////////////////////////////////////////////////////////
 ////////////////////////////////DEBUG//////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
+var names = [];
 var my_room = {
 	name: "Stanza di Orland",
 	points: [{x:0,y:0},{x:10,y:0},{x:10,y:10},{x:0,y:10},{x:0,y:0}],
@@ -55,7 +56,7 @@ function render_schermata(idx){
 	if (idx==0){
         schermata_1.style.display = "inline";
     }
-    if (idx==1){//EDIT
+	if (idx==1){//EDIT
         schermata_2.style.display = "inline";
         open_editor();
     }
@@ -383,6 +384,7 @@ function open_editor(){//inizializzazioni all'apertura dell'editor
     grid = new Grid();      //crea oggetto griglia
 	grid.set(20);
 	editor_active_objects = {};
+	
     windowResize();
 	window.onresize = windowResize;
 	currentTool = Tools.LINE;
@@ -909,13 +911,22 @@ function save_room_db(){
 		db.collection('Rooms').doc(my_room.name);
 	}
 	else{
-		db.collection('Rooms').doc("Ultima stanza");
+		db.collection('Rooms').doc("Last Room Created");
 	}
 	db.collection('Rooms').doc(my_room.name).set(my_room);
 	
   }
-
-function get_room_db(){
+function display_saved_rooms(){
+	db.collection('Rooms').get().then(
+		function(querySnapshot) {
+			querySnapshot.forEach(function(doc) {
+				names.push(doc.id)
+			}
+			)
+		}
+	)
+}
+function get_room_db(room_name){
 	db.collection('Rooms').doc(room_name).get().then(
 		function(doc){
 			my_room = doc.data();
