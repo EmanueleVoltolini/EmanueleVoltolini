@@ -914,8 +914,7 @@ function save_room_db(){
 		db.collection('Rooms').doc("Last Room Created");
 	}
 	db.collection('Rooms').doc(my_room.name).set(my_room);
-	
-  }
+}
 function display_saved_rooms(){
 	db.collection('Rooms').get().then(
 		function(querySnapshot) {

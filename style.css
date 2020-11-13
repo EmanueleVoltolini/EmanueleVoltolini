@@ -41,6 +41,12 @@
     left:5px;
     border:1px solid #ccc;
 }
+#load_room{
+    height : 108px;
+    width: 108px;
+    overflow-y : scroll;
+    display: block;
+} 
 
 #refl_container{
     position: absolute;
