@@ -42,12 +42,22 @@
     border:1px solid #ccc;
 }
 #load_room{
-    height : 108px;
-    width: 108px;
-    overflow-y : scroll;
-    display: block;
+    height : 120px;
+    width: 200px;
 } 
-
+#internal_container_names{
+    height : 100px;
+    width: 200px;
+    overflow-y : scroll;
+    position: relative;
+    display: block;
+}
+#room_name{
+    height : 20px;
+    width: 150px;
+    position: relative;
+    border:1px solid #ccc;
+}
 #refl_container{
     position: absolute;
 }

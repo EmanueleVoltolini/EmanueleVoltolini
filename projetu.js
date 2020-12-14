@@ -7,6 +7,9 @@ var db = firebase.firestore();//initializes firebase
 ////////////////////////////////DEBUG//////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 var names = [];
+var real_source = [2,1];
+var N_iter = 0;
+receiver = {x:1,y:2};
 var my_room = {
 	name: "Stanza di Orland",
 	points: [{x:0,y:0},{x:10,y:0},{x:10,y:10},{x:0,y:10},{x:0,y:0}],
@@ -15,12 +18,11 @@ var my_room = {
 		{x_a:10,y_a:0, x_b:10,y_b:10,reflect : 0.5},
 		{x_a:10,y_a:10,x_b:0, y_b:10,reflect : 0.7},
 		{x_a:0, y_a:10,x_b:0, y_b:0, reflect : 1}
-	]
+	],
+	room_source: real_source,
+	room_receiver: receiver
 }
 saved_rooms = [my_room];
-var real_source = [2,1];
-var N_iter = 0;
-receiver = {x:1,y:2};
 var my_ULA = {x:5,y:0,angle:0,aperture:10,N_mic:10};
 ///////////////////////////////////////////////////////////////////////////
 
@@ -41,6 +43,7 @@ var iter_labels = []
 var schermata_attuale = 0;
 
 //FSM CONTROLLER
+initialize_db_room();
 document.querySelectorAll(".selector").forEach(function(obj,idx){
     obj.onclick = function (){
         schermata_attuale = idx + 1;
@@ -384,7 +387,7 @@ function open_editor(){//inizializzazioni all'apertura dell'editor
     grid = new Grid();      //crea oggetto griglia
 	grid.set(20);
 	editor_active_objects = {};
-	
+	display_saved_rooms();
     windowResize();
 	window.onresize = windowResize;
 	currentTool = Tools.LINE;
@@ -464,6 +467,9 @@ function save_room(){
 		name: name,
 		points: shape.points,
 		edges: [],
+		room_source: [],
+		room_receiver: {},
+		my_ULA: {x:0,y:0,angle:0,aperture:0,N_mic:0}
 	}
 	for (i=0;i<shape.last;i++){
 		this_edge = {
@@ -486,7 +492,9 @@ function save_room(){
 	my_ULA.y = grid.translate(editor_active_objects.ULA_x,editor_active_objects.ULA_y).y;
 	my_ULA.angle = editor_active_objects.ULA_angle;
 	my_ULA.aperture = editor_active_objects.ULA_aperture/grid.size;
-
+	my_room.room_receiver = receiver;
+	my_room.room_source = real_source;
+	my_room.my_ULA = my_ULA;
 	schermata_attuale = 0;
 	save_room_db();
 	render_schermata(schermata_attuale);
@@ -906,16 +914,7 @@ function fillChart(){
 ///////////////////////////////////////////////////////////////////////////
 ////////////////////////////DATABASE INTERACTION///////////////////////////
 ///////////////////////////////////////////////////////////////////////////
-function save_room_db(){
-	if (my_room.name){
-		db.collection('Rooms').doc(my_room.name);
-	}
-	else{
-		db.collection('Rooms').doc("Last Room Created");
-	}
-	db.collection('Rooms').doc(my_room.name).set(my_room);
-}
-function display_saved_rooms(){
+function initialize_db_room(){
 	names = [];
 	db.collection('Rooms').get().then(
 		function(querySnapshot) {
@@ -926,10 +925,37 @@ function display_saved_rooms(){
 		}
 	)
 }
+function save_room_db(){
+	if (my_room.name){
+		db.collection('Rooms').doc(my_room.name);
+	}
+	else{
+		db.collection('Rooms').doc("Last Room Created");
+	}
+	db.collection('Rooms').doc(my_room.name).set(my_room);
+}
+function display_saved_rooms(){
+	document.querySelectorAll('.room').forEach(function(obj){obj.remove()});
+	names.forEach(function(name){
+		myDiv = document.createElement('div');
+		myDiv.setAttribute("id", "room_name");
+		internal_container_names.appendChild(myDiv);
+		myDiv.innerHTML = name;
+		myDiv.onclick = function(){
+			get_room_db(name);
+			render_schermata(0);
+		};
+		myDiv.classList.add('room');
+	}
+	)
+}
 function get_room_db(room_name){
 	db.collection('Rooms').doc(room_name).get().then(
 		function(doc){
 			my_room = doc.data();
+			real_source = my_room.room_source;
+			receiver = my_room.room_receiver;
+			my_ULA = my_room.my_ULA;
 		}
 	)
 }
@@ -1097,7 +1123,7 @@ function RIR_iteration_source(room,source,receiver){
         this_iteration = [];
     }
 
-	virtual_sources = audibility_check(room, virtual_sources, receiver);
+	virtual_sources = audibility_check(room, virtual_sources,receiver);
 	virtual_sources = time_distance(virtual_sources,receiver);
 
     return virtual_sources;
