@@ -490,17 +490,23 @@ function save_room(){
 	receiver.y = grid.translate(editor_active_objects.R_x,editor_active_objects.R_y).y;
 	my_ULA.x = grid.translate(editor_active_objects.ULA_x,editor_active_objects.ULA_y).x;
 	my_ULA.y = grid.translate(editor_active_objects.ULA_x,editor_active_objects.ULA_y).y;
-	my_ULA.angle = editor_active_objects.ULA_angle;
 	my_ULA.aperture = editor_active_objects.ULA_aperture/grid.size;
-	my_room.room_receiver = receiver;
-	my_room.room_source = real_source;
-	my_room.my_ULA = my_ULA;
-	schermata_attuale = 0;
-	if(my_room.name==""){
-		my_room.name = "Last_Room";
+	my_ULA.angle = editor_active_objects.ULA_angle;
+	if(isNaN(real_source[0]) || isNaN(real_source[1]) || isNaN(receiver.x) || isNaN(receiver.y) || isNaN(my_ULA.x)
+	 || isNaN(my_ULA.y) || isNaN(my_ULA.aperture) || isNaN(my_ULA.angle)){
+		alert("Please be shure to insert the SOURCE, RECEIVER and LINEAR ARRAY before save your room!");
 	}
-	save_room_db();
-	render_schermata(schermata_attuale);
+	else{
+		my_room.room_receiver = receiver;
+		my_room.room_source = real_source;
+		my_room.my_ULA = my_ULA;
+		schermata_attuale = 0;
+		if(my_room.name==""){
+			alert("Please insert a name for your room!");
+		}
+		save_room_db();
+		render_schermata(schermata_attuale);
+	}	
 }
 function click_source(){
 	editor_status = 1;
