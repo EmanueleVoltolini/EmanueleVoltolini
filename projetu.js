@@ -71,14 +71,14 @@ function render_schermata(idx){
 		schermata_4.style.display = "inline";
 		full_simulation_ULA();
     }
-    if (idx==4){//CREDITS
+    if (idx==6){//CREDITS
 		schermata_5.style.display = "inline";
 	}
-	if (idx==5){//SARTI
+	if (idx==4){//SARTI
 		schermata_6.style.display = "inline";
 		setup_simulation2();
 	}
-	if (idx==6){//OUTPUT
+	if (idx==5){//OUTPUT
 		document.body.style.cursor = 'wait';//NOT WORKING!!!
 		schermata_7.style.display = "inline";
 		full_simulation_single_receiver();
@@ -496,6 +496,9 @@ function save_room(){
 	my_room.room_source = real_source;
 	my_room.my_ULA = my_ULA;
 	schermata_attuale = 0;
+	if(my_room.name==""){
+		my_room.name = "Last_Room";
+	}
 	save_room_db();
 	render_schermata(schermata_attuale);
 }
@@ -926,12 +929,7 @@ function initialize_db_room(){
 	)
 }
 function save_room_db(){
-	if (my_room.name){
-		db.collection('Rooms').doc(my_room.name);
-	}
-	else{
-		db.collection('Rooms').doc("Last Room Created");
-	}
+	db.collection('Rooms').doc(my_room.name);
 	db.collection('Rooms').doc(my_room.name).set(my_room);
 }
 function display_saved_rooms(){
