@@ -1470,7 +1470,7 @@ function convolve(idx){
 	myConv = audioCtx.createConvolver();
 	if (idx==0){
 		myConv.buffer = myBuffer;
-		var audio = new Audio("elephant_snarl.wav");
+		var audio = new Audio("Dino.wav");
 		//audio.crossOrigin = "anonymous";
 		var source = audioCtx.createMediaElementSource(audio);
 		source.connect(audioCtx.destination);
