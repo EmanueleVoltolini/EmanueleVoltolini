@@ -1335,6 +1335,29 @@ function SignalsClass(){
 		}
 		return output;
 	}
+	this.hermitian = function (M){
+		var X = M.length;
+		var Y = M[0].length;
+		var M_h = [];
+		for (var a=0;a<Y;a++){
+			var this_row = [];
+			for (var b=0;b<X;b++){
+				this_row.push(math.conj(M[b][a]));
+			}
+			M_h.push(this_row);
+		}
+		return M_h;
+	}
+	this.prune = function (M){
+		for (a=0;a<M[0].length;a++){
+			for (b=0;b<M.length;b++){
+				if (M[b][a] != 0) {return;}
+			}
+			M.forEach(function(obj){
+				obj.shift();
+			})
+		}
+	}
 	return this;
 }
 Signals = new SignalsClass();
@@ -1373,12 +1396,19 @@ function full_simulation_ULA(freq,duration,step_degrees){
 		for (var c=0;c<my_ULA.N_mic;c++){
 			a.push(math.exp(math.multiply(math.complex(0,-1),c*omega_s)));
 		}//GOT the steering vector
-		var power = math.complex(0,0);
-		for (var c=0;c<my_ULA.N_mic;c++){
-			power = math.add(power,math.sum(math.multiply(a[c],ULA_data_freqDomain[c])));
+		var power = 0;
+		for (var c=0;c<duration;c++){
+			var instant_data = [];
+			for (var z=0;z<my_ULA.N_mic;z++){
+				instant_data.push(ULA_data_freqDomain[z][c]);
+			}
+			var filtered = math.sum(math.dotMultiply(instant_data,a));
+			power += filtered.abs();
 		}
-		p_spectrum.push(power.abs());
-	}
+		p_spectrum.push(power);
+	}/*
+	var covariance_Matrix = math.multiply(math.matrix(Signals.hermitian(ULA_data_freqDomain)),math.matrix(ULA_data_freqDomain));
+	console.log(covariance_Matrix.size);*/
 	return p_spectrum;
 }
 ///////////////////////////////////////////////////////////////////////////
