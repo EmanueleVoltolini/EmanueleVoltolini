@@ -1,16 +1,37 @@
 <link rel="stylesheet" href="style.css">
+<body>
+    <script src="https://www.gstatic.com/firebasejs/7.16.0/firebase-app.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/7.16.0/firebase-firestore.js"></script>
+    <script>
+        const firebaseConfig = {
+         apiKey: "AIzaSyAFP0NIKWa7u3yT50HstzuTsa6fmMlwNL4",
+         authDomain: "dinosource-9cea9.firebaseapp.com",
+         databaseURL: "https://dinosource-9cea9.firebaseio.com",
+         projectId: "dinosource-9cea9",
+         storageBucket: "dinosource-9cea9.appspot.com",
+         messagingSenderId: "29068264362",
+         appId: "1:29068264362:web:2eaaa51b57f124ac6b21d3",
+         measurementId: "G-RSRTGGY2V2"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+    </script>
+</body>
 
 <div class = schermata id = schermata_1>
-    <div id="img_container">
-        <img src= "dinosource.png" id="sfondo"></img>
-    </div>
-    <div id="sel_container">
+    <div id="sel_container_L">
         <div class = selector>EDIT ROOM</div>
         <div class = selector>SIMULATE</div>
         <div class = selector>MICROPHONE ARRAY</div>
-        <div class = selector>CREDITS</div>
+    </div>
+    <div id="img_container">
+        <img src= "dinosource_ray.png" id="sfondo"></img>
+    </div>
+    <div id="sel_container_R">
         <div class = selector>METODO SARTI</div>
         <div class = selector>OUTPUT</div>
+        <div class = selector>CREDITS</div>
     </div>
 </div>
 
@@ -21,8 +42,12 @@
     <div id = "refl_container">
         REFLECTIVITY
         <input type = "range" id = reflectivity_selector></input>
+        <div id = "load_room">LOAD ROOM
+            <div id="internal_container_names" class="invisible-scrollbar"></div>
+        </div>
         <div id = info_container>
             <button onclick = "open_editor()">CANCEL</button>
+            <div> INSERT ROOM NAME</div>
             <input id=nome_stanza type = "text"></input>
             <button onclick = "save_room()">SAVE</button>
             <button onclick="render_schermata(0)">BACK</button>
@@ -89,7 +114,7 @@
         <canvas id="delayChart"></canvas>
     </div>
     <button onclick=play_buffer()>PLAY IMPULSE RESPONSE</button>
-    <button onclick="elephant_input.play()">PLAY ELEPHANT SNARL</button>
+    <button onclick="elephant_input.play()">PLAY DINOSAUR ROAR</button>
     <button onclick=convolve(0)>SIMULATE ACOUSTICS</button>
     <button onclick="render_schermata(0)">BACK</button>
 </div>
@@ -102,7 +127,7 @@
 <img src= "source_water.png" class="dinos"></img>
 <img src= "source_yellow.png" class="dinos"></img>
 
-<audio  src="elephant_snarl.wav" id = elephant_input></audio>
+<audio  src="Dino.wav" id = elephant_input></audio>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.0"></script>
 <script src=https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.3.0/math.min.js></script>
 <script src="http://mlweb.loria.fr/lalolib.js"></script>

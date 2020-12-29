@@ -2,15 +2,50 @@
     display : none;
 }
 
-.selector{
-    width : 200px;
-    height : 50px;
-    border-radius : 20%;
-    margin : 5%;
-    display : block;
-    background-color: grey;
-    text-align : center;
+.selector {
+    border: 50px solid rgba(255, 255, 255, 0);
+    padding: 1em;
+    outline: None;
+    outline-color: None;
+    color: white;
+    text-transform: uppercase;
+    font-weight: 900;
+    font-style: 1.2em;
+    letter-spacing: 0.2em;
+    position: relative;
+    z-index: 1;
+    cursor: pointer;
+    background: none;
+    text-shadow: 3px 3px 10px rgba(0, 0, 0, .45);
 }
+.selector:before, .selector:after {
+    
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    border-radius: 10em;
+    transform: translateX(-50%) translateY(-50%);
+    width: 250px;
+    height: 50px;
+    content: '';
+    z-index: -2;
+    background-size: 400% 400%;
+    /*background: linear-gradient(60deg, #000000, #791c09, #b10435, #a19100, #5073b8, #1098ad, #07b39b, #6fba82);*/
+    background: black;
+}
+.selector:before {
+    filter: blur(7px);
+    transition: all 0.25s ease;
+    animation: pulse 10s infinite ease;
+}
+.selector:after {
+    filter: blur(0.3px);
+}
+.selector:hover:before {
+    width: 280px;
+    height: 60px;
+}
+
 
 #schermata_1{
     display : inline;
@@ -40,7 +75,24 @@
     top:5px;
     left:5px;
     border:1px solid #ccc;
+}
+#load_room{
+    height : 120px;
+    width: 200px;
 } 
+#internal_container_names{
+    height : 100px;
+    width: 200px;
+    overflow-y : scroll;
+    position: relative;
+    display: block;
+}
+#room_name{
+    height : 20px;
+    width: 150px;
+    position: relative;
+    border:1px solid #ccc;
+}
 #refl_container{
     position: absolute;
 }
@@ -82,10 +134,22 @@
     height: 100%;
 }
 #img_container{
+    top: 0%;
+    left: 10%;
     display: inline-block;
     height: 100%;
+    position: absolute
+
 }
-#sel_container{
+#sel_container_L{
+    top: 5%;
+    left: 10%;
+    display: inline-block;
+    position: absolute;
+}
+#sel_container_R{
+    top: 5%;
+    left: 70%;
     display: inline-block;
     position: absolute;
 }

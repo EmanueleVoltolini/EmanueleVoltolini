@@ -6,3 +6,6 @@ Tyno     =  esprit/ metodi parametrici
             T60
 
 ci aggiorniamo (tipo cosa plottare e far vedere al Sartone)
+
+Aggiornamenti:
+- Fare in modo di poter utilizzare una room anche senza salvarla
