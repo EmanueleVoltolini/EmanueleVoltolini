@@ -935,7 +935,7 @@ function initialize_db_room(){
 	)
 }
 function save_room_db(){
-	db.collection('Rooms').doc(my_room.name);
+//	db.collection('Rooms').doc(my_room.name);
 	db.collection('Rooms').doc(my_room.name).set(my_room);
 }
 function display_saved_rooms(){
