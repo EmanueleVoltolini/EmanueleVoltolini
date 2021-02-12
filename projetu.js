@@ -86,6 +86,7 @@ function render_schermata(idx){
 		schermata_7.style.display = "inline";
 		full_simulation_single_receiver();
 		fillChart();
+		var T = estimate_T(reflections);
 		document.body.style.cursor = 'default';
     }
 }
@@ -1074,6 +1075,20 @@ function get_room_db(room_name){
 		}
 	)
 }
+function save_audio_db(signal){
+	meta = {N_mics: signal.length, duration: signal[0].length};
+	db.collection('aaa_Metadata').doc('ULA_aperture').set({aperture:my_ULA.aperture});
+	//calculate angle
+	var angle = Math.atan2(real_source[1]-my_ULA.y,real_source[0]-my_ULA.x) + Math.PI/2 - my_ULA.angle;
+	db.collection('aaa_Metadata').doc('Real Source Data').set({angle:angle});
+	db.collection('aaa_Metadata').doc('Sample_Rate').set({Fs:audioCtx.sampleRate});
+	for (ke=0;ke<signal.length;ke++){
+		docname = 'audio' + ke;
+		db.collection('Audios').doc(docname);
+		db.collection('Audios').doc(docname).set({samples:signal[ke]});
+	}
+	console.log(angle)
+}
 
 ///////////////////////////////////////////////////////////////////////////
 ////////////////////////////////RIR SIM BACKEND////////////////////////////
@@ -1563,7 +1578,11 @@ function full_simulation_ULA(freq,duration,step_degrees){
 		this_output_row = math.dotMultiply(this_output_row,sine_fft);
 		ULA_data_freqDomain.push(this_output_row);
 	}
-	//return ULA_data_freqDomain;
+
+	//save_audio_db(ULA_data_timeDomain); DEBUGGG
+
+	return ULA_data_freqDomain;
+	/*
 	//finally GOT THE DATA from the mics
 	var omega_c = freq*2*Math.PI;
 	var d = my_ULA.aperture/(my_ULA.N_mic-1);
@@ -1588,7 +1607,33 @@ function full_simulation_ULA(freq,duration,step_degrees){
 	}/*
 	var covariance_Matrix = math.multiply(math.matrix(Signals.hermitian(ULA_data_freqDomain)),math.matrix(ULA_data_freqDomain));
 	console.log(covariance_Matrix.size);*/
-	return p_spectrum;
+	return p_spectrum; 
+}
+function estimate_T(data){
+	var max_ratio = Math.max.apply(null,data.magnitude)/Math.min.apply(null, data.magnitude);
+	var energy = 0;
+	data.magnitude.forEach(function(mag){energy+= mag**2})
+	var residue = energy/100;
+	var T;
+	var kind = 20;
+	if (max_ratio>100){
+		residue = energy/10000;
+		kind = 40;
+	}
+	if (max_ratio>1000){
+		residue = energy/1000000;
+		kind = 60;
+	}
+	var nrg_counter = 0;
+	for (var ws=data.magnitude.length-1;ws>=0;ws--){
+		nrg_counter += data.magnitude[ws]**2;
+		if (nrg_counter>=residue){
+			T = data.delays[ws] - data.delays[0];
+			break;
+		}
+	}
+	var myString = "T" + kind + " = " + T
+	return myString; //DEBUG
 }
 ///////////////////////////////////////////////////////////////////////////
 /////////////////////////////////AUDIO PLAYOUT/////////////////////////////
