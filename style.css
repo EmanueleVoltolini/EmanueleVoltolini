@@ -25,7 +25,7 @@
     left: 50%;
     border-radius: 10em;
     transform: translateX(-50%) translateY(-50%);
-    width: 250px;
+    width: 300px;
     height: 50px;
     content: '';
     z-index: -2;
@@ -42,7 +42,7 @@
     filter: blur(0.3px);
 }
 .selector:hover:before {
-    width: 280px;
+    width: 330px;
     height: 60px;
 }
 
