@@ -1579,7 +1579,7 @@ function full_simulation_ULA(freq,duration,step_degrees){
 		ULA_data_freqDomain.push(this_output_row);
 	}
 
-	//save_audio_db(ULA_data_timeDomain); DEBUGGG
+	save_audio_db(ULA_data_timeDomain); //DEBUGGG
 
 	return ULA_data_freqDomain;
 	/*
