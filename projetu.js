@@ -87,7 +87,7 @@ function render_schermata(idx){
 		schermata_7.style.display = "inline";
 		full_simulation_single_receiver();
 		fillChart();
-		var T = estimate_T(reflections);
+		T60container.innerHTML = estimate_T(reflections);
 		document.body.style.cursor = 'default';
     }
 }
@@ -1123,14 +1123,13 @@ function save_audio_db(signal){
 	//calculate angle
 	var angle = Math.atan2(my_ULA.y-real_source[1],real_source[0]-my_ULA.x) + my_ULA.angle;
 	angle = Math.abs(angle) - Math.PI/2;
-	db.collection('aaa_Metadata').doc('Real Source Data').set({angle:angle});
+	db.collection('aaa_Metadata').doc('Real Source Data').set({angle:angle,meter:my_room.meter});
 	db.collection('aaa_Metadata').doc('Sample_Rate').set({Fs:audioCtx.sampleRate});
 	for (ke=0;ke<signal.length;ke++){
 		docname = 'audio' + ke;
 		db.collection('Audios').doc(docname);
 		db.collection('Audios').doc(docname).set({samples:signal[ke]});
 	}
-	console.log(angle*57.3)
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1425,6 +1424,7 @@ function RIR_iteration(room,source,receiver){
     return virtual_sources;
 }
 function time_distance(virt_sources,receiver, unit){
+	sound_velocity = 340;///////
 	var s;
 	var dist;
 	var t;
@@ -1631,6 +1631,7 @@ function full_simulation_ULA(freq,duration,step_degrees){
 	var omega_c = freq*2*Math.PI;
 	var d = my_ULA.aperture/(my_ULA.N_mic-1);
 	//DAS BEAMFORMER
+	sound_velocity = 340/my_room.meter;
 	var p_spectrum = [];
 	for (var theta=-90;theta<=90;theta+=step_degrees){
 		var omega_s = d*omega_c*Math.sin(Math.PI/180 * theta)/sound_velocity;
