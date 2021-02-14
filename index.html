@@ -22,14 +22,14 @@
 <div class = schermata id = schermata_1>
     <div id="sel_container_L">
         <div class = selector>EDIT ROOM</div>
-        <div class = selector>SIMULATE</div>
+<!-- <div class = selector>SIMULATE</div> -->
         <div class = selector>MICROPHONE ARRAY</div>
+        <div class = selector>IMAGE SOURCE METHOD</div>
     </div>
     <div id="img_container">
         <img src= "dinosource_ray.png" id="sfondo"></img>
     </div>
     <div id="sel_container_R">
-        <div class = selector>METODO SARTI</div>
         <div class = selector>OUTPUT</div>
         <div class = selector>CREDITS</div>
     </div>
@@ -42,6 +42,13 @@
     <div id = "refl_container">
         REFLECTIVITY
         <input type = "range" id = reflectivity_selector></input>
+        <div>UNIT</div>
+        <form>
+            <input type="radio" onclick='change_meter(this.value);' id="Meter" name="Meter" value= 1>
+            <label for= 1 >Meter</label><br>
+            <input type="radio" onclick='change_meter(this.value);' id="Decimeter" name="Meter" value= 0>
+            <label for= 0 >Decimeter</label><br>
+          </form>
         <div id = "load_room">LOAD ROOM
             <div id="internal_container_names" class="invisible-scrollbar"></div>
         </div>
@@ -88,6 +95,7 @@
 
 <div class = schermata id = schermata_4>
     MICROPHONE ARRAY
+    <div id='DAS'><!-- Plotly chart will be drawn inside this DIV --></div>
     <button onclick="render_schermata(0)">BACK</button>
 </div>
 
@@ -103,7 +111,7 @@
     <div class='buttoncontainer'>
         <button class = "buttons" onclick = prev_iter_source()>PREVIOUS</button>
         <button class = "buttons" onclick = next_iter_source()>NEXT</button>
-        <button id='pathbutton' class = "buttons" onclick = show_hide_path()>SHOW PATHS</button>
+        <button id = "pathbutton" class = "buttons" onclick = show_hide_path()>SHOW PATHS</button>
         <button class = "buttons" onclick = toggle_animation()>ANIMATION</button>
         <button onclick="render_schermata(0)">BACK</button>
     </div>
@@ -128,8 +136,11 @@
 <img src= "source_yellow.png" class="dinos"></img>
 
 <audio  src="Dino.wav" id = elephant_input></audio>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.0"></script>
 <script src=https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.3.0/math.min.js></script>
 <script src="http://mlweb.loria.fr/lalolib.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@0.7.7/dist/chartjs-plugin-zoom.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
 <script src="projetu.js"></script>

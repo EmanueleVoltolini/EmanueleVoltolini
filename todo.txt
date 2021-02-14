@@ -1,11 +1,7 @@
-POrtland =  gestione salvataggio room con firebase
-            funzione json.stringfy , json.parse
-            ennesimi bug grafici 
-Tyno     =  esprit/ metodi parametrici
-            buggino (un dunembuggy piccolino)
-            T60
+POrtland =  metri,dec
+            grafico pagina microphones polar 
 
-ci aggiorniamo (tipo cosa plottare e far vedere al Sartone)
+Tyno     =  T60
+            stime affidabilità 
 
-Aggiornamenti:
-- Fare in modo di poter utilizzare una room anche senza salvarla
+Da guardare assieme: Simulate acoustic 

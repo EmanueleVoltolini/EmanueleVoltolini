@@ -20,20 +20,23 @@ var my_room = {
 		{x_a:0, y_a:10,x_b:0, y_b:0, reflect : 1}
 	],
 	room_source: real_source,
-	room_receiver: receiver
+	room_receiver: receiver,
+	meter: 1    //if 1 are meter, if 0 are decimeter
 }
 saved_rooms = [my_room];
 var my_ULA = {x:5,y:0,angle:0,aperture:10,N_mic:10};
+var exist_chart = 0;
+///////////////////////////////////////////////////////////////////////////
+//////////////////////////////CONSTANT/////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
-//CONSTANT
 var sound_velocity = 340;  // [m/s]
 var reflections = {delays: [], magnitude:[], colors: [], iter: []};
 var signal_pow = 100;
 var color = ["#000000","#0000FF","#DC143C","#00FFFF","#00FF00","#FFA500","#DDA0DD","#2E8B57","#FFFF00","#EE82EE",
 			  "#008080","#800000","#FFB6C1","#FFD700","#696969","#1E90FF","#FFE4C4","#FF6347","#F5F5F5","#CD853F"];
 var iteration = ["Direct path","First iteration","Second iteration", "Third iteration", "Fourth iteration", "Fifth iteration", "Sixth iteration","Seventh iteration"];
-var iter_labels = []
+var iter_labels = [];
 
 ///////////////////////////////////////////////////////////////////////////
 //////////////////////////////////FSM//////////////////////////////////////
@@ -63,22 +66,23 @@ function render_schermata(idx){
         schermata_2.style.display = "inline";
         open_editor();
     }
-    if (idx==2){//SIMULATION
+    /*if (idx==2){//SIMULATION
 		schermata_3.style.display = "inline";
 		setup_simulation();
-    }
-    if (idx==3){//ULA
+    }*/
+    if (idx==2){//ULA
 		schermata_4.style.display = "inline";
 		full_simulation_ULA();
+		polar_chart();
     }
-    if (idx==6){//CREDITS
+    if (idx==5){//CREDITS
 		schermata_5.style.display = "inline";
 	}
-	if (idx==4){//SARTI
+	if (idx==3){//SARTI IMAGE SOURCE METHOD
 		schermata_6.style.display = "inline";
 		setup_simulation2();
 	}
-	if (idx==5){//OUTPUT
+	if (idx==4){//OUTPUT
 		document.body.style.cursor = 'wait';//NOT WORKING!!!
 		schermata_7.style.display = "inline";
 		full_simulation_single_receiver();
@@ -466,6 +470,7 @@ function save_room(){
 	var name = nome_stanza.value;
 	var room = {
 		name: name,
+		meter: meter,  
 		points: shape.points,
 		edges: [],
 		room_source: [],
@@ -852,24 +857,45 @@ function draw_animation(){
 	}
 	animationPhase++;
 }
+function round(value, decimals) {
+	return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+}
+function change_meter(met){
+	if(parseInt(met)){
+		meter = 1;
+	}
+	else{
+		meter = 0.1;
+	}
+}
 function addData(chart, label_chart, data_chart, color_chart) {
-//	console.log(color)
 	var dataset = {
 			data : data_chart,
 			backgroundColor : color_chart,
-			label : label_chart
+			label : label_chart,
+			barThickness: 2
 		}
-    chart.data.datasets.push(dataset,);
+	chart.data.datasets.push(dataset,);
     chart.update();
 }
 function fillChart(){
-	////////////////////////////////////////CHART CODE////////////////////////////////////////////
+	if(exist_chart){
+		barChart.destroy();
+	}
 	var ctx_chart = document.getElementById('delayChart').getContext('2d');  //create a ctx for the chart
-	data_approx();  								//approximation of the data in order to have a better visualization of the delays
+	var stepSize_xAxis = 0.0001; 
+	var max_xAsix = max(reflections.delays) + 10*stepSize_xAxis;
+	var chart_iter = max_xAsix/stepSize_xAxis + 1;
+	data_approx();							//approximation of the data in order to have a better visualization of the delays
+	var label_mag = [0];
+	for(i=0;i<chart_iter - 1;i++){
+		label_mag.push(label_mag[i]+1);
+		label_mag[i] = round(label_mag[i] * stepSize_xAxis, 4);
+	}
 	barChart = new Chart(ctx_chart, {               //creation of the new chart
 		type:'bar',
 		data: {
-			labels: reflections.delays,
+			labels: label_mag,
 			datasets:[
 
 			]
@@ -884,31 +910,149 @@ function fillChart(){
 			},
 			scales: {
 				xAxes: [{
-					stacked: true
+					stacked: true,
+					ticks:{
+						min:0,
+						max: max_xAsix,
+						stepSize: 0.005
+					}
 				}],
 				yAxes: [{
+	//				stacked: true,
+					type: 'logarithmic',
 					stacked: true
 				}]
+			},
+			// Container for pan options
+			pan: {
+				// Boolean to enable panning
+				enabled: true,
+	
+				mode: 'xy',
+	
+				rangeMin: {
+					// Format of min pan range depends on scale type
+					x: null,
+					y: null
+				},
+				rangeMax: {
+					// Format of max pan range depends on scale type
+					x: null,
+					y: null
+				},
+	
+				// On category scale, factor of pan velocity
+				speed: 20,
+	
+				// Minimal pan distance required before actually applying pan
+				threshold: 10,
+	
+				// Function called while the user is panning
+				onPan: function({chart}) { console.log(`I'm panning!!!`); },
+				// Function called once panning is completed
+				onPanComplete: function({chart}) { console.log(`I was panned!!!`); }
+			},
+	
+			// Container for zoom options
+			zoom: {
+				// Boolean to enable zooming
+				enabled: true,
+	
+				// Enable drag-to-zoom behavior
+				drag: true,
+	
+				// Drag-to-zoom effect can be customized
+				// drag: {
+				// 	 borderColor: 'rgba(225,225,225,0.3)'
+				// 	 borderWidth: 5,
+				// 	 backgroundColor: 'rgb(225,225,225)',
+				// 	 animationDuration: 0
+				// },
+	
+				// Zooming directions. Remove the appropriate direction to disable
+				// Eg. 'y' would only allow zooming in the y direction
+				// A function that is called as the user is zooming and returns the
+				// available directions can also be used:
+				//   mode: function({ chart }) {
+				//     return 'xy';
+				//   },
+				mode: 'xy',
+	
+				rangeMin: {
+					// Format of min zoom range depends on scale type
+					x: null,
+					y: null
+				},
+				rangeMax: {
+					// Format of max zoom range depends on scale type
+					x: null,
+					y: null
+				},
+	
+				// Speed of zoom via mouse wheel
+				// (percentage of zoom on a wheel event)
+				speed: 0.1,
+	
+				// Minimal zoom distance required before actually applying zoom
+				threshold: 2,
+	
+				// On category scale, minimal zoom level before actually applying zoom
+				sensitivity: 3,
+	
+				// Function called while the user is zooming
+				onZoom: function({chart}) { console.log(`I'm zooming!!!`); },
+				// Function called once zooming is completed
+				onZoomComplete: function({chart}) { console.log(`I was zoomed!!!`); }
 			}
-		}
-
+		},
 	});
-	//for cycle to fill the dataset dynamically
 	for(i=0;i<=N_iter;i++){
 		var data_mag = [];
 		var color_data = [];
-		for(j=0;j<reflections.delays.length;j++){
+		for(j=0;j<chart_iter;j++){
 			color_data.push(color[i]);
-			if(reflections.iter[j]==i){
-				data_mag.push(reflections.magnitude[j]);
-			}
-			else{
-				data_mag.push(0);  //add value 0 for the value != num iter that we are considering
+			data_mag.push[0];
+			for(p=0; p<reflections.delays.length;p++){
+				if(reflections.delays[p]==label_mag[j] && reflections.iter[p]==i){
+					data_mag[j] = {x: label_mag[j], y:reflections.magnitude[p]};
+				}
 			}
 		}
 		addData(barChart,iter_labels[i],data_mag,color_data); //call the function to fill the chart
 	}
-	//////////////////////////////////////////////END OF CHART CODE//////////////////////////////////////////////////////
+	exist_chart = 1;
+}
+function polar_chart(){
+	var trace1 = {
+		r: 0,    //inserire l'array dei dati
+		theta: 0, //inserire l'array con gli angoli in gradi
+		mode: 'lines',
+		name: 'real angle',
+		line: {color: 'blue'},
+		type: 'scatterpolar'
+	};
+	  
+	var trace2 = {
+		r: 0, //inserire l'array dei dati
+		theta: 0, //inserire l'array con gli angoli in gradi
+		mode: 'lines',
+		name: 'DAS beamformer',
+		line: {color: 'green'},
+		type: 'scatterpolar'
+	};
+	var data = [trace1, trace2];
+
+	var layout = {
+		title: 'DAS Beamformer',
+		font: {
+			family: 'Arial, sans-serif;',
+			size: 12,
+			color: '#000'
+		},
+		showlegend: true,
+		orientation: -90
+	};
+	Plotly.newPlot('DAS', data, layout);
 }
 
 /*TODO LIST
@@ -936,7 +1080,7 @@ function initialize_db_room(){
 	)
 }
 function save_room_db(){
-	db.collection('Rooms').doc(my_room.name);
+//	db.collection('Rooms').doc(my_room.name);
 	db.collection('Rooms').doc(my_room.name).set(my_room);
 }
 function display_saved_rooms(){
@@ -1144,7 +1288,7 @@ function RIR_iteration_source(room,source,receiver){
     }
 
 	virtual_sources = audibility_check(room, virtual_sources,receiver);
-	virtual_sources = time_distance(virtual_sources,receiver);
+	virtual_sources = time_distance(virtual_sources,receiver,room.meter);
 
     return virtual_sources;
 }
@@ -1271,14 +1415,15 @@ function RIR_iteration(room,source,receiver){
     }
     return virtual_sources;
 }
-function time_distance(virt_sources,receiver){
+function time_distance(virt_sources,receiver, unit){
 	var s;
 	var dist;
 	var t;
 	var delay;
+	var met = unit;
 	reflections = {delays: [], magnitude:[], colors: [], iter: []};
 	iter_labels = [];
-	dist = point_distance(real_source,receiver);
+	dist = point_distance(real_source,receiver) * met;
 	virt_sources[0][0].time = dist / sound_velocity;
 	virt_sources[0][0].attenuation = virt_sources[0][0].attenuation / dist;
 	iter_labels.push(iteration[0]);
@@ -1468,7 +1613,9 @@ function full_simulation_ULA(freq,duration,step_degrees){
 		ULA_data_freqDomain.push(this_output_row);
 	}
 
+
 	save_audio_db(ULA_data_timeDomain);
+
 
 	return ULA_data_freqDomain;
 	/*
