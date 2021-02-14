@@ -72,7 +72,7 @@ function render_schermata(idx){
     }*/
     if (idx==2){//ULA
 		schermata_4.style.display = "inline";
-		full_simulation_ULA();
+		full_simulation_ULA(440,12000,1);
 		polar_chart();
     }
     if (idx==5){//CREDITS

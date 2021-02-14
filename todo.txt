@@ -1,5 +1,4 @@
-POrtland =  metri,dec
-            grafico pagina microphones polar 
+POrtland = grafico pagina microphones polar 
 
 Tyno     =  T60
             stime affidabilità 
