@@ -73,6 +73,7 @@ function render_schermata(idx){
     if (idx==2){//ULA
 		schermata_4.style.display = "inline";
 		full_simulation_ULA();
+		polar_chart();
     }
     if (idx==5){//CREDITS
 		schermata_5.style.display = "inline";
@@ -1020,6 +1021,38 @@ function fillChart(){
 		addData(barChart,iter_labels[i],data_mag,color_data); //call the function to fill the chart
 	}
 	exist_chart = 1;
+}
+function polar_chart(){
+	var trace1 = {
+		r: 0,    //inserire l'array dei dati
+		theta: 0, //inserire l'array con gli angoli in gradi
+		mode: 'lines',
+		name: 'real angle',
+		line: {color: 'blue'},
+		type: 'scatterpolar'
+	};
+	  
+	var trace2 = {
+		r: 0, //inserire l'array dei dati
+		theta: 0, //inserire l'array con gli angoli in gradi
+		mode: 'lines',
+		name: 'DAS beamformer',
+		line: {color: 'green'},
+		type: 'scatterpolar'
+	};
+	var data = [trace1, trace2];
+
+	var layout = {
+		title: 'DAS Beamformer',
+		font: {
+			family: 'Arial, sans-serif;',
+			size: 12,
+			color: '#000'
+		},
+		showlegend: true,
+		orientation: -90
+	};
+	Plotly.newPlot('DAS', data, layout);
 }
 
 /*TODO LIST
