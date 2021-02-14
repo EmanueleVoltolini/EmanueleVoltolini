@@ -1622,10 +1622,10 @@ function full_simulation_ULA(freq,duration,step_degrees){
 		ULA_data_freqDomain.push(this_output_row);
 	}
 
-	//save_audio_db(ULA_data_timeDomain);
+	save_audio_db(ULA_data_timeDomain);
 
 	//return ULA_data_freqDomain;
-	console.log("data");
+	//console.log("data");
 
 	//finally GOT THE DATA from the mics
 	var omega_c = freq*2*Math.PI;
