@@ -154,7 +154,7 @@ function rotate_ULA_editor(e){//rotate array
 	ctx2.beginPath();
 	var x = editor_active_objects.ULA_x-5;
 	var y = editor_active_objects.ULA_y-5;
-	editor_active_objects.ULA_angle = Math.atan((e.clientY-5-y)/(e.clientX-5-x));
+	editor_active_objects.ULA_angle = Math.atan2((e.clientY-5-y),(e.clientX-5-x));
 	var swing_y = Math.round(30*Math.sin(editor_active_objects.ULA_angle));
 	var swing_x = Math.round(30*Math.cos(editor_active_objects.ULA_angle));
 	ctx2.moveTo(x -swing_x , y -swing_y);
@@ -1112,7 +1112,8 @@ function save_audio_db(signal){
 	meta = {N_mics: signal.length, duration: signal[0].length};
 	db.collection('aaa_Metadata').doc('ULA_aperture').set({aperture:my_ULA.aperture});
 	//calculate angle
-	var angle = Math.atan2(real_source[1]-my_ULA.y,real_source[0]-my_ULA.x) + Math.PI/2 - my_ULA.angle;
+	var angle = Math.atan2(my_ULA.y-real_source[1],real_source[0]-my_ULA.x) + my_ULA.angle;
+	angle = Math.abs(angle) - Math.PI/2;
 	db.collection('aaa_Metadata').doc('Real Source Data').set({angle:angle});
 	db.collection('aaa_Metadata').doc('Sample_Rate').set({Fs:audioCtx.sampleRate});
 	for (ke=0;ke<signal.length;ke++){
@@ -1120,7 +1121,7 @@ function save_audio_db(signal){
 		db.collection('Audios').doc(docname);
 		db.collection('Audios').doc(docname).set({samples:signal[ke]});
 	}
-	console.log(angle)
+	console.log(angle*57.3)
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1612,7 +1613,9 @@ function full_simulation_ULA(freq,duration,step_degrees){
 		ULA_data_freqDomain.push(this_output_row);
 	}
 
-	save_audio_db(ULA_data_timeDomain); //DEBUGGG
+
+	save_audio_db(ULA_data_timeDomain);
+
 
 	return ULA_data_freqDomain;
 	/*
