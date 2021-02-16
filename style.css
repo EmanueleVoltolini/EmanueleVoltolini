@@ -161,3 +161,10 @@
     width:45%;
     display:inline-block;
 }
+#num_iter{
+    height : 20px;
+    width: 50px;
+    position: relative;
+    border:2px solid #ccc;
+    border-radius: 10%;
+}

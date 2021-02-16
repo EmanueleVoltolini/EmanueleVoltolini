@@ -1,6 +1,5 @@
-POrtland = grafico pagina microphones polar 
-
-Tyno     =  T60
-            stime affidabilità 
-
-Da guardare assieme: Simulate acoustic 
+POrtland =  N_iter = 10 per grafico 
+            grafica schermata 1
+            aggiungi link 
+Tyno     =  roar 
+            provare normalizzare

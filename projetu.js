@@ -35,7 +35,7 @@ var reflections = {delays: [], magnitude:[], colors: [], iter: []};
 var signal_pow = 100;
 var color = ["#000000","#0000FF","#DC143C","#00FFFF","#00FF00","#FFA500","#DDA0DD","#2E8B57","#FFFF00","#EE82EE",
 			  "#008080","#800000","#FFB6C1","#FFD700","#696969","#1E90FF","#FFE4C4","#FF6347","#F5F5F5","#CD853F"];
-var iteration = ["Direct path","First iteration","Second iteration", "Third iteration", "Fourth iteration", "Fifth iteration", "Sixth iteration","Seventh iteration"];
+var iteration = ["Direct path","First iteration","Second iteration", "Third iteration", "Fourth iteration", "Fifth iteration", "Sixth iteration","Seventh iteration","Eighth iteration","Ninth iteration","Tenth iteration"];
 var iter_labels = [];
 
 ///////////////////////////////////////////////////////////////////////////
@@ -63,6 +63,7 @@ function render_schermata(idx){
         schermata_1.style.display = "inline";
     }
 	if (idx==1){//EDIT
+		N_iter = 0;
         schermata_2.style.display = "inline";
         open_editor();
     }
@@ -626,6 +627,10 @@ function render_source(x,y){
 	ctx_rir.globalAlpha = 1;
 	ctx_rir.drawImage(dino_images[0],scale*x+x_center,scale*y+y_center);
 }
+function simulate(){
+	RIR_iteration_source(my_room,real_source,[receiver.x,receiver.y]);
+	alert("If the number of iteration is high, the process can take same time!")
+}
 
 ///////////////////////////////////////////////////////////////////////////
 ////////////////////////////////RIR SIM FRONTEND///////////////////////////
@@ -884,8 +889,9 @@ function fillChart(){
 	}
 	var ctx_chart = document.getElementById('delayChart').getContext('2d');  //create a ctx for the chart
 	var stepSize_xAxis = 0.0001; 
-	var max_xAsix = max(reflections.delays) + 10*stepSize_xAxis;
-	var chart_iter = max_xAsix/stepSize_xAxis + 1;
+	var max_xAxis = max(reflections.delays) + 10*stepSize_xAxis;
+	console.log(max_xAxis);
+	var chart_iter = max_xAxis/stepSize_xAxis + 1;
 	data_approx();							//approximation of the data in order to have a better visualization of the delays
 	var label_mag = [0];
 	for(i=0;i<chart_iter - 1;i++){
@@ -913,14 +919,16 @@ function fillChart(){
 					stacked: true,
 					ticks:{
 						min:0,
-						max: max_xAsix,
+						max: max_xAxis,
 						stepSize: 0.005
 					}
 				}],
 				yAxes: [{
-	//				stacked: true,
+					stacked: true,
 					type: 'logarithmic',
-					stacked: true
+					ticks:{
+						min: 0
+					}
 				}]
 			},
 			// Container for pan options
@@ -1272,6 +1280,9 @@ function intersection(edge,point_a,point_b){
     }
 }
 function RIR_iteration_source(room,source,receiver){
+	if(num_iter.value!=""){
+		N_iter= parseInt(num_iter.value);
+	}
     var virtual_sources = [];
     var this_iteration = [];
     var virt_source;
@@ -1297,7 +1308,6 @@ function RIR_iteration_source(room,source,receiver){
 
 	virtual_sources = audibility_check(room, virtual_sources,receiver);
 	virtual_sources = time_distance(virtual_sources,receiver,room.meter);
-
     return virtual_sources;
 }
 function audibility_check(room,v_sources,receiver){
@@ -1445,6 +1455,7 @@ function time_distance(virt_sources,receiver, unit){
 	for(i=1;i<virt_sources.length;i++){
 		iter_labels.push(iteration[i]);
 		for(j=0;j<virt_sources[i].length;j++){
+			console.log(j);
 			s = virt_sources[i][j];
 			dist = point_distance(s.source,s.parent.source);
 			t = dist/sound_velocity;
