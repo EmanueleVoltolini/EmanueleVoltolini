@@ -1440,7 +1440,7 @@ function time_distance(virt_sources,receiver){
 	var delay;
 	reflections = {delays: [], magnitude:[], colors: [], iter: []};
 	iter_labels = [];
-	dist = point_distance(real_source,receiver) * met;
+	dist = point_distance(real_source,receiver);
 	virt_sources[0][0].time = dist / sound_velocity;
 	virt_sources[0][0].attenuation = virt_sources[0][0].attenuation / dist;
 	iter_labels.push(iteration[0]);
