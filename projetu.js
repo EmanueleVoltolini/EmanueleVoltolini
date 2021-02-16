@@ -890,7 +890,6 @@ function fillChart(){
 	var ctx_chart = document.getElementById('delayChart').getContext('2d');  //create a ctx for the chart
 	var stepSize_xAxis = 0.0001; 
 	var max_xAxis = max(reflections.delays) + 10*stepSize_xAxis;
-	console.log(max_xAxis);
 	var chart_iter = max_xAxis/stepSize_xAxis + 1;
 	data_approx();							//approximation of the data in order to have a better visualization of the delays
 	var label_mag = [0];
@@ -1307,7 +1306,7 @@ function RIR_iteration_source(room,source,receiver){
     }
 
 	virtual_sources = audibility_check(room, virtual_sources,receiver);
-	virtual_sources = time_distance(virtual_sources,receiver,room.meter);
+	virtual_sources = time_distance(virtual_sources,receiver);
     return virtual_sources;
 }
 function audibility_check(room,v_sources,receiver){
@@ -1433,13 +1432,12 @@ function RIR_iteration(room,source,receiver){
     }
     return virtual_sources;
 }
-function time_distance(virt_sources,receiver, unit){
-	sound_velocity = 340;///////
+function time_distance(virt_sources,receiver){
+	sound_velocity = 340/my_room.meter;///////
 	var s;
 	var dist;
 	var t;
 	var delay;
-	var met = unit;
 	reflections = {delays: [], magnitude:[], colors: [], iter: []};
 	iter_labels = [];
 	dist = point_distance(real_source,receiver) * met;
@@ -1455,7 +1453,6 @@ function time_distance(virt_sources,receiver, unit){
 	for(i=1;i<virt_sources.length;i++){
 		iter_labels.push(iteration[i]);
 		for(j=0;j<virt_sources[i].length;j++){
-			console.log(j);
 			s = virt_sources[i][j];
 			dist = point_distance(s.source,s.parent.source);
 			t = dist/sound_velocity;
