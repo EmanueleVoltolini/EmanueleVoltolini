@@ -72,8 +72,8 @@ function render_schermata(idx){
     }*/
     if (idx==2){//ULA
 		schermata_4.style.display = "inline";
-		full_simulation_ULA(440,12000,1);
-		polar_chart();
+		var p_sp = full_simulation_ULA(440,12000,1);
+		polar_chart(p_sp);
     }
     if (idx==5){//CREDITS
 		schermata_5.style.display = "inline";
@@ -87,7 +87,7 @@ function render_schermata(idx){
 		schermata_7.style.display = "inline";
 		full_simulation_single_receiver();
 		fillChart();
-		var T = estimate_T(reflections);
+		T60container.innerHTML = estimate_T(reflections);
 		document.body.style.cursor = 'default';
     }
 }
@@ -1022,10 +1022,19 @@ function fillChart(){
 	}
 	exist_chart = 1;
 }
-function polar_chart(){
+function polar_chart(data){
+	var theta = Array.from(Array(360).keys());
+	var angle = Math.atan2(my_ULA.y-real_source[1],real_source[0]-my_ULA.x) + my_ULA.angle;
+	angle = Math.floor((Math.abs(angle) - Math.PI/2)*180/Math.PI);
+	var comparison = new Array(360).fill(0);
+	comparison[angle+90] = Math.max.apply(null, data);
+	comparison[270-angle] = Math.max.apply(null, data);
+
+	data = data.concat(data.slice(1,360).reverse());
+
 	var trace1 = {
-		r: 0,    //inserire l'array dei dati
-		theta: 0, //inserire l'array con gli angoli in gradi
+		r: comparison,    //inserire l'array dei dati
+		theta: theta, //inserire l'array con gli angoli in gradi
 		mode: 'lines',
 		name: 'real angle',
 		line: {color: 'blue'},
@@ -1033,8 +1042,8 @@ function polar_chart(){
 	};
 	  
 	var trace2 = {
-		r: 0, //inserire l'array dei dati
-		theta: 0, //inserire l'array con gli angoli in gradi
+		r: data, //inserire l'array dei dati
+		theta: theta, //inserire l'array con gli angoli in gradi
 		mode: 'lines',
 		name: 'DAS beamformer',
 		line: {color: 'green'},
@@ -1114,14 +1123,13 @@ function save_audio_db(signal){
 	//calculate angle
 	var angle = Math.atan2(my_ULA.y-real_source[1],real_source[0]-my_ULA.x) + my_ULA.angle;
 	angle = Math.abs(angle) - Math.PI/2;
-	db.collection('aaa_Metadata').doc('Real Source Data').set({angle:angle});
+	db.collection('aaa_Metadata').doc('Real Source Data').set({angle:angle,meter:my_room.meter});
 	db.collection('aaa_Metadata').doc('Sample_Rate').set({Fs:audioCtx.sampleRate});
 	for (ke=0;ke<signal.length;ke++){
 		docname = 'audio' + ke;
 		db.collection('Audios').doc(docname);
 		db.collection('Audios').doc(docname).set({samples:signal[ke]});
 	}
-	console.log(angle*57.3)
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1416,6 +1424,7 @@ function RIR_iteration(room,source,receiver){
     return virtual_sources;
 }
 function time_distance(virt_sources,receiver, unit){
+	sound_velocity = 340;///////
 	var s;
 	var dist;
 	var t;
@@ -1613,16 +1622,16 @@ function full_simulation_ULA(freq,duration,step_degrees){
 		ULA_data_freqDomain.push(this_output_row);
 	}
 
-
 	save_audio_db(ULA_data_timeDomain);
 
+	//return ULA_data_freqDomain;
+	//console.log("data");
 
-	return ULA_data_freqDomain;
-	/*
 	//finally GOT THE DATA from the mics
 	var omega_c = freq*2*Math.PI;
 	var d = my_ULA.aperture/(my_ULA.N_mic-1);
 	//DAS BEAMFORMER
+	sound_velocity = 340/my_room.meter;
 	var p_spectrum = [];
 	for (var theta=-90;theta<=90;theta+=step_degrees){
 		var omega_s = d*omega_c*Math.sin(Math.PI/180 * theta)/sound_velocity;
@@ -1640,9 +1649,8 @@ function full_simulation_ULA(freq,duration,step_degrees){
 			power += filtered.abs();
 		}
 		p_spectrum.push(power);
-	}/*
-	var covariance_Matrix = math.multiply(math.matrix(Signals.hermitian(ULA_data_freqDomain)),math.matrix(ULA_data_freqDomain));
-	console.log(covariance_Matrix.size);*/
+	}
+
 	return p_spectrum; 
 }
 function estimate_T(data){
