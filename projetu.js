@@ -63,7 +63,6 @@ function render_schermata(idx){
         schermata_1.style.display = "inline";
     }
 	if (idx==1){//EDIT
-		N_iter = 0;
         schermata_2.style.display = "inline";
         open_editor();
     }
@@ -408,6 +407,7 @@ function open_editor(){//inizializzazioni all'apertura dell'editor
 	ULA_theta_input.value = "ANGLE";
 	ULA_a_input.value = "APERTURE";
 	editor_status = 0;
+	num_iter.value = 0;
 	editor_FSM();
 }
 window.onmousedown = function(evt){
@@ -890,7 +890,7 @@ function fillChart(){
 	var ctx_chart = document.getElementById('delayChart').getContext('2d');  //create a ctx for the chart
 	var stepSize_xAxis = 0.0001; 
 	var max_xAxis = max(reflections.delays) + 10*stepSize_xAxis;
-	var min_yAxis = -80;
+	var min_yAxis = 1e-4;
 	var chart_iter = max_xAxis/stepSize_xAxis + 1;
 	data_approx();							//approximation of the data in order to have a better visualization of the delays
 	var label_mag = [0];
@@ -964,10 +964,10 @@ function fillChart(){
 			// Container for zoom options
 			zoom: {
 				// Boolean to enable zooming
-				enabled: false,
+				enabled: true,
 	
 				// Enable drag-to-zoom behavior
-				drag: true,
+				drag: false,
 	
 				// Drag-to-zoom effect can be customized
 				// drag: {

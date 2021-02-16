@@ -1,5 +1,4 @@
-POrtland =  N_iter = 10 per grafico 
-            grafica schermata 1
+POrtland =  grafica schermata 1
             aggiungi link 
 Tyno     =  roar 
             provare normalizzare
