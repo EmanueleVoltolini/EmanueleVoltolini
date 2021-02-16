@@ -890,6 +890,7 @@ function fillChart(){
 	var ctx_chart = document.getElementById('delayChart').getContext('2d');  //create a ctx for the chart
 	var stepSize_xAxis = 0.0001; 
 	var max_xAxis = max(reflections.delays) + 10*stepSize_xAxis;
+	var min_yAxis = -80;
 	var chart_iter = max_xAxis/stepSize_xAxis + 1;
 	data_approx();							//approximation of the data in order to have a better visualization of the delays
 	var label_mag = [0];
@@ -926,7 +927,7 @@ function fillChart(){
 					stacked: true,
 					type: 'logarithmic',
 					ticks:{
-						min: 0
+						min: min_yAxis
 					}
 				}]
 			},
@@ -963,7 +964,7 @@ function fillChart(){
 			// Container for zoom options
 			zoom: {
 				// Boolean to enable zooming
-				enabled: true,
+				enabled: false,
 	
 				// Enable drag-to-zoom behavior
 				drag: true,
@@ -1004,7 +1005,7 @@ function fillChart(){
 				threshold: 2,
 	
 				// On category scale, minimal zoom level before actually applying zoom
-				sensitivity: 3,
+				sensitivity: 2,
 	
 				// Function called while the user is zooming
 				onZoom: function({chart}) { console.log(`I'm zooming!!!`); },
@@ -1016,7 +1017,7 @@ function fillChart(){
 	for(i=0;i<=N_iter;i++){
 		var data_mag = [];
 		var color_data = [];
-		for(j=0;j<chart_iter;j++){
+		for(j=0;j<chart_iter-1;j++){
 			color_data.push(color[i]);
 			data_mag.push[0];
 			for(p=0; p<reflections.delays.length;p++){
