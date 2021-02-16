@@ -1296,7 +1296,7 @@ function RIR_iteration_source(room,source,receiver){
     }
 
 	virtual_sources = audibility_check(room, virtual_sources,receiver);
-	virtual_sources = time_distance(virtual_sources,receiver,room.meter);
+	virtual_sources = time_distance(virtual_sources,receiver);
 
     return virtual_sources;
 }
@@ -1423,16 +1423,15 @@ function RIR_iteration(room,source,receiver){
     }
     return virtual_sources;
 }
-function time_distance(virt_sources,receiver, unit){
-	sound_velocity = 340;///////
+function time_distance(virt_sources,receiver){
+	sound_velocity = 340/my_room.meter;///////
 	var s;
 	var dist;
 	var t;
 	var delay;
-	var met = unit;
 	reflections = {delays: [], magnitude:[], colors: [], iter: []};
 	iter_labels = [];
-	dist = point_distance(real_source,receiver) * met;
+	dist = point_distance(real_source,receiver);
 	virt_sources[0][0].time = dist / sound_velocity;
 	virt_sources[0][0].attenuation = virt_sources[0][0].attenuation / dist;
 	iter_labels.push(iteration[0]);
