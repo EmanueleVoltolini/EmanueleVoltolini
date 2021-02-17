@@ -407,7 +407,7 @@ function open_editor(){//inizializzazioni all'apertura dell'editor
 	ULA_theta_input.value = "ANGLE";
 	ULA_a_input.value = "APERTURE";
 	editor_status = 0;
-	num_iter.value = 0;
+	N_iter = 0;
 	editor_FSM();
 }
 window.onmousedown = function(evt){
