@@ -917,6 +917,10 @@ function fillChart(){
 			scales: {
 				xAxes: [{
 					stacked: true,
+					scaleLabel: {
+						display: true,
+						labelString: 'Time[s]'
+					},
 					ticks:{
 						min:0,
 						max: max_xAxis,
@@ -926,8 +930,18 @@ function fillChart(){
 				yAxes: [{
 					stacked: true,
 					type: 'logarithmic',
+					scaleLabel: {
+						display: true,
+						labelString: 'Amplitude[dB]'
+					},
 					ticks:{
-						min: min_yAxis
+						min: min_yAxis,
+						callback: function(value) {
+							if (Math.round(value*1000)/1000 === value) {
+								value = 20*log10(value);
+							  	return (value >= 0 || -1) * Math.round(Math.abs(value));
+							}
+						}
 					}
 				}]
 			},
@@ -999,18 +1013,13 @@ function fillChart(){
 	
 				// Speed of zoom via mouse wheel
 				// (percentage of zoom on a wheel event)
-				speed: 0.1,
+				speed: 0.01,
 	
 				// Minimal zoom distance required before actually applying zoom
-				threshold: 2,
+				threshold: 1,
 	
 				// On category scale, minimal zoom level before actually applying zoom
-				sensitivity: 2,
-	
-				// Function called while the user is zooming
-				onZoom: function({chart}) { console.log(`I'm zooming!!!`); },
-				// Function called once zooming is completed
-				onZoomComplete: function({chart}) { console.log(`I was zoomed!!!`); }
+				sensitivity: 1,
 			}
 		},
 	});
