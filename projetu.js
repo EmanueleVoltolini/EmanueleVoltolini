@@ -75,6 +75,7 @@ function render_schermata(idx){
 		num_iter.value = "5";
 		var p_sp = full_simulation_ULA(440,12000,1);
 		polar_chart(p_sp);
+		N_iter=0;
     }
     if (idx==5){//CREDITS
 		schermata_5.style.display = "inline";
