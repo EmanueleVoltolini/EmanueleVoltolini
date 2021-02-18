@@ -629,7 +629,9 @@ function render_source(x,y){
 }
 function simulate(){
 	RIR_iteration_source(my_room,real_source,[receiver.x,receiver.y]);
-	alert("If the number of iteration is high, the process can take same time!")
+	if(N_iter>=6){
+		alert("If the number of iteration is high, the process can take same time!")
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1062,7 +1064,7 @@ function polar_chart(data){
 		r: data, //inserire l'array dei dati
 		theta: theta, //inserire l'array con gli angoli in gradi
 		mode: 'lines',
-		name: 'DAS beamformer',
+		name: 'DAS Beamformer    ',
 		line: {color: 'green'},
 		type: 'scatterpolar'
 	};
@@ -1076,6 +1078,10 @@ function polar_chart(data){
 			color: '#000'
 		},
 		showlegend: true,
+		legend: {
+			x: 0,
+			y: 1
+		},
 		orientation: -90
 	};
 	Plotly.newPlot('DAS', data, layout);
