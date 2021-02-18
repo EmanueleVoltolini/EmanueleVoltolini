@@ -1321,8 +1321,9 @@ function RIR_iteration_source(room,source,receiver){
         this_iteration = [];
     }
 
-	virtual_sources = audibility_check(room, virtual_sources,receiver);
-	virtual_sources = time_distance(virtual_sources,receiver);
+	  virtual_sources = audibility_check(room, virtual_sources,receiver);
+	  virtual_sources = time_distance(virtual_sources,receiver);
+
     return virtual_sources;
 }
 function audibility_check(room,v_sources,receiver){
