@@ -102,7 +102,7 @@
     If you want to see a comparison between the 
     DAS beamformer and MUSIC method click the link below.  
     </div>
-    <a id='link' target="_blank" href="https://colab.research.google.com/github/geekmj/python-tutorials/blob/master/numpy-basics/save-array-to-file.ipynb">TEST DIFFERENT METHOD!</a>
+    <a id='link' target="_blank" href="https://colab.research.google.com/drive/1OVWO8NOlDUW73igbcdcKXt341aQ31a_O?usp=sharing">TEST DIFFERENT METHOD!</a>
     <button class = "buttons" onclick="render_schermata(0)">BACK</button>
 </div>
 
@@ -128,7 +128,7 @@
     <div id='number_iter'>NUMBER OF ITERATION:
         <input id=num_iter type = "number" min = "0" max="10"></input>
         <button class='outbuttons' onclick=simulate();>SIMULATE</button>
-        <button class='outbuttons' onclick=fillChart()>CHART</button>
+        <button class='outbuttons' onclick="fillChart();T60container.innerHTML = estimate_T(reflections);">CHART</button>
         <button class='outbuttons' onclick=play_buffer()>PLAY IMPULSE RESPONSE</button>
         <button class='outbuttons' onclick="render_schermata(0)">BACK</button>
         <div id='T60container'></div>

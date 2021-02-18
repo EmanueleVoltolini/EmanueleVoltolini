@@ -72,6 +72,7 @@ function render_schermata(idx){
     }*/
     if (idx==2){//ULA
 		schermata_4.style.display = "inline";
+		num_iter.value = "5";
 		var p_sp = full_simulation_ULA(440,12000,1);
 		polar_chart(p_sp);
     }
@@ -1625,6 +1626,7 @@ function SignalsClass(){
 Signals = new SignalsClass();
 
 function full_simulation_ULA(freq,duration,step_degrees){
+	N_iter = 5;
 	var duration_pow_2 = Math.pow(2,Math.ceil(Math.log2(duration)));
 	var sine = Signals.sine(duration_pow_2,freq);
 	var sine_fft = Signals.FFT(Signals.to_complex(sine));
@@ -1702,7 +1704,7 @@ function estimate_T(data){
 		}
 	}
 	var myString = "T" + kind + " = " + T
-	return myString; //DEBUG
+	return myString; 
 }
 ///////////////////////////////////////////////////////////////////////////
 /////////////////////////////////AUDIO PLAYOUT/////////////////////////////

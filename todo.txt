@@ -1,5 +1,4 @@
-
-POrtland =  grafica schermata 1
-            aggiungi link 
-Tyno     =  roar 
-            provare normalizzare
+back
+n_mic ula schermata draw
+questione colab
+pulire database e fare 5 room
