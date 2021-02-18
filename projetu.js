@@ -75,7 +75,6 @@ function render_schermata(idx){
 		num_iter.value = "5";
 		var p_sp = full_simulation_ULA(440,12000,1);
 		polar_chart(p_sp);
-		N_iter=0;
     }
     if (idx==5){//CREDITS
 		schermata_5.style.display = "inline";
@@ -630,9 +629,12 @@ function render_source(x,y){
 	ctx_rir.drawImage(dino_images[0],scale*x+x_center,scale*y+y_center);
 }
 function simulate(){
+	if(num_iter.value!=""){
+		N_iter= parseInt(num_iter.value);
+	}
 	RIR_iteration_source(my_room,real_source,[receiver.x,receiver.y]);
 	if(N_iter>=6){
-		alert("If the number of iteration is high, the process can take same time!")
+		alert("If the number of iteration is high, the process can take some time!")
 	}
 }
 
@@ -1297,9 +1299,6 @@ function intersection(edge,point_a,point_b){
     }
 }
 function RIR_iteration_source(room,source,receiver){
-	if(num_iter.value!=""){
-		N_iter= parseInt(num_iter.value);
-	}
     var virtual_sources = [];
     var this_iteration = [];
     var virt_source;
@@ -1626,8 +1625,10 @@ function SignalsClass(){
 }
 Signals = new SignalsClass();
 
-function full_simulation_ULA(freq,duration,step_degrees){
+function full_simulation_ULA(freq_ignored,duration,step_degrees){
 	N_iter = 5;
+	var ULA_d = my_ULA.aperture/(my_ULA.N_mic-1);
+	var freq = sound_velocity/(2*ULA_d);
 	var duration_pow_2 = Math.pow(2,Math.ceil(Math.log2(duration)));
 	var sine = Signals.sine(duration_pow_2,freq);
 	var sine_fft = Signals.FFT(Signals.to_complex(sine));
