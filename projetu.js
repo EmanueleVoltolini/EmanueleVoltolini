@@ -35,7 +35,7 @@ var reflections = {delays: [], magnitude:[], colors: [], iter: []};
 var signal_pow = 100;
 var color = ["#000000","#0000FF","#DC143C","#00FFFF","#00FF00","#FFA500","#DDA0DD","#2E8B57","#FFFF00","#EE82EE",
 			  "#008080","#800000","#FFB6C1","#FFD700","#696969","#1E90FF","#FFE4C4","#FF6347","#F5F5F5","#CD853F"];
-var iteration = ["Direct path","First iteration","Second iteration", "Third iteration", "Fourth iteration", "Fifth iteration", "Sixth iteration","Seventh iteration"];
+var iteration = ["Direct path","First iteration","Second iteration", "Third iteration", "Fourth iteration", "Fifth iteration", "Sixth iteration","Seventh iteration","Eighth iteration","Ninth iteration","Tenth iteration"];
 var iter_labels = [];
 
 ///////////////////////////////////////////////////////////////////////////
@@ -407,6 +407,7 @@ function open_editor(){//inizializzazioni all'apertura dell'editor
 	ULA_theta_input.value = "ANGLE";
 	ULA_a_input.value = "APERTURE";
 	editor_status = 0;
+	N_iter = 0;
 	editor_FSM();
 }
 window.onmousedown = function(evt){
@@ -625,6 +626,12 @@ function render_receiver(x,y){
 function render_source(x,y){
 	ctx_rir.globalAlpha = 1;
 	ctx_rir.drawImage(dino_images[0],scale*x+x_center,scale*y+y_center);
+}
+function simulate(){
+	RIR_iteration_source(my_room,real_source,[receiver.x,receiver.y]);
+	if(N_iter>=6){
+		alert("If the number of iteration is high, the process can take same time!")
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -884,8 +891,9 @@ function fillChart(){
 	}
 	var ctx_chart = document.getElementById('delayChart').getContext('2d');  //create a ctx for the chart
 	var stepSize_xAxis = 0.0001; 
-	var max_xAsix = max(reflections.delays) + 10*stepSize_xAxis;
-	var chart_iter = max_xAsix/stepSize_xAxis + 1;
+	var max_xAxis = max(reflections.delays) + 10*stepSize_xAxis;
+	var min_yAxis = 1e-4;
+	var chart_iter = max_xAxis/stepSize_xAxis + 1;
 	data_approx();							//approximation of the data in order to have a better visualization of the delays
 	var label_mag = [0];
 	for(i=0;i<chart_iter - 1;i++){
@@ -911,16 +919,32 @@ function fillChart(){
 			scales: {
 				xAxes: [{
 					stacked: true,
+					scaleLabel: {
+						display: true,
+						labelString: 'Time[s]'
+					},
 					ticks:{
 						min:0,
-						max: max_xAsix,
+						max: max_xAxis,
 						stepSize: 0.005
 					}
 				}],
 				yAxes: [{
-	//				stacked: true,
+					stacked: true,
 					type: 'logarithmic',
-					stacked: true
+					scaleLabel: {
+						display: true,
+						labelString: 'Amplitude[dB]'
+					},
+					ticks:{
+						min: min_yAxis,
+						callback: function(value) {
+							if (Math.round(value*1000)/1000 === value) {
+								value = 20*log10(value);
+							  	return (value >= 0 || -1) * Math.round(Math.abs(value));
+							}
+						}
+					}
 				}]
 			},
 			// Container for pan options
@@ -959,7 +983,7 @@ function fillChart(){
 				enabled: true,
 	
 				// Enable drag-to-zoom behavior
-				drag: true,
+				drag: false,
 	
 				// Drag-to-zoom effect can be customized
 				// drag: {
@@ -991,25 +1015,20 @@ function fillChart(){
 	
 				// Speed of zoom via mouse wheel
 				// (percentage of zoom on a wheel event)
-				speed: 0.1,
+				speed: 0.01,
 	
 				// Minimal zoom distance required before actually applying zoom
-				threshold: 2,
+				threshold: 1,
 	
 				// On category scale, minimal zoom level before actually applying zoom
-				sensitivity: 3,
-	
-				// Function called while the user is zooming
-				onZoom: function({chart}) { console.log(`I'm zooming!!!`); },
-				// Function called once zooming is completed
-				onZoomComplete: function({chart}) { console.log(`I was zoomed!!!`); }
+				sensitivity: 1,
 			}
 		},
 	});
 	for(i=0;i<=N_iter;i++){
 		var data_mag = [];
 		var color_data = [];
-		for(j=0;j<chart_iter;j++){
+		for(j=0;j<chart_iter-1;j++){
 			color_data.push(color[i]);
 			data_mag.push[0];
 			for(p=0; p<reflections.delays.length;p++){
@@ -1045,7 +1064,7 @@ function polar_chart(data){
 		r: data, //inserire l'array dei dati
 		theta: theta, //inserire l'array con gli angoli in gradi
 		mode: 'lines',
-		name: 'DAS beamformer',
+		name: 'DAS Beamformer    ',
 		line: {color: 'green'},
 		type: 'scatterpolar'
 	};
@@ -1059,6 +1078,10 @@ function polar_chart(data){
 			color: '#000'
 		},
 		showlegend: true,
+		legend: {
+			x: 0,
+			y: 1
+		},
 		orientation: -90
 	};
 	Plotly.newPlot('DAS', data, layout);
@@ -1272,6 +1295,9 @@ function intersection(edge,point_a,point_b){
     }
 }
 function RIR_iteration_source(room,source,receiver){
+	if(num_iter.value!=""){
+		N_iter= parseInt(num_iter.value);
+	}
     var virtual_sources = [];
     var this_iteration = [];
     var virt_source;
@@ -1295,8 +1321,8 @@ function RIR_iteration_source(room,source,receiver){
         this_iteration = [];
     }
 
-	virtual_sources = audibility_check(room, virtual_sources,receiver);
-	virtual_sources = time_distance(virtual_sources,receiver);
+	  virtual_sources = audibility_check(room, virtual_sources,receiver);
+	  virtual_sources = time_distance(virtual_sources,receiver);
 
     return virtual_sources;
 }

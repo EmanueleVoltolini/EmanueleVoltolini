@@ -1,7 +1,7 @@
 .schermata{
     display : none;
+    font-family: 'Vollkorn SC';
 }
-
 .selector {
     border: 50px solid rgba(255, 255, 255, 0);
     padding: 1em;
@@ -11,6 +11,7 @@
     text-transform: uppercase;
     font-weight: 900;
     font-style: 1.2em;
+    font-style: garamond;
     letter-spacing: 0.2em;
     position: relative;
     z-index: 1;
@@ -45,7 +46,29 @@
     width: 330px;
     height: 60px;
 }
-
+.buttoncontainer{
+    position:absolute;
+    right: 50px;
+    font-family: 'Vollkorn SC';
+}
+.coord_input{
+    width:45%;
+    margin-bottom: 1px;
+    border: 1px solid black;
+    border-radius: 7%;
+    display:inline-block;
+}
+.buttons{
+    display:block;
+    font-family: 'Vollkorn SC';
+    margin: 1px;
+}
+.dinos{
+    display:none;
+}
+.outbuttons{
+    font-family: 'Vollkorn SC';
+}
 
 #schermata_1{
     display : inline;
@@ -77,26 +100,33 @@
     border:1px solid #ccc;
 }
 #load_room{
-    height : 120px;
-    width: 200px;
+    height : 145px;
+    width: 290px;
 } 
 #internal_container_names{
-    height : 100px;
-    width: 200px;
+    height : 115px;
+    width: 300px;
     overflow-y : scroll;
     position: relative;
     display: block;
 }
 #room_name{
     height : 20px;
-    width: 150px;
+    width: 185px;
+    margin: 1px;
     position: relative;
-    border:1px solid #ccc;
+    border:1px solid rgb(0, 0, 0);
+    border-radius: 3%;
 }
 #refl_container{
     position: absolute;
+    height: 90%;
+    width: 12%;
 }
-
+#info_container{
+    position: relative;
+    font-family: 'Vollkorn SC';
+}
 #RIR_canvas{
     background-color:#fff;
     display:block;
@@ -123,12 +153,7 @@
     left:5px;
     border:1px solid #ccc;
 }
-.buttons{
-    display:block;
-}
-.dinos{
-    display:none;
-}
+
 #sfondo{
     object-fit: contain;
     height: 100%;
@@ -153,11 +178,56 @@
     display: inline-block;
     position: absolute;
 }
-.buttoncontainer{
-    position:absolute;
-    right: 50px;
+
+#num_iter{
+    height : 20px;
+    width: 50px;
+    position: relative;
+    border:2px solid #ccc;
+    border-radius: 10%;
 }
-.coord_input{
-    width:45%;
-    display:inline-block;
+#number_iter{
+    height : 30px;
+    width: 100%;
+    position: relative;
+}
+#T60container{
+    height: 20px;
+    width: 200px;
+    position: relative;
+}
+#ROAR{
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background-color: whitesmoke;
+    top: 11.9%;
+    left: 38.3%;
+    position: relative;
+}
+#button_draw{
+    margin: 3px;
+    font-family: 'Vollkorn SC';
+}
+#DAS{
+    left: 0%;
+    width: 90%;
+    height: 80%;
+    display: block;
+}
+#testing{
+    top:20%;
+    right: 1%;
+    display: inline-block;
+    position: absolute;
+    white-space: pre-line;
+    white-space: pre-wrap;
+    padding: 15px;
+    border: 2px solid black;
+    border-radius: 25px;
+}
+#link{
+    position:absolute;
+    top: 32.5%;
+    right: 12%;
 }

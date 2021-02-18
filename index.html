@@ -1,3 +1,4 @@
+<link href='https://fonts.googleapis.com/css?family=Vollkorn SC' rel='stylesheet'>
 <link rel="stylesheet" href="style.css">
 <body>
     <script src="https://www.gstatic.com/firebasejs/7.16.0/firebase-app.js"></script>
@@ -33,6 +34,7 @@
         <div class = selector>OUTPUT</div>
         <div class = selector>CREDITS</div>
     </div>
+    <div id='ROAR' onclick="dino_input.play()"></div>
 </div>
 
 <div class = schermata id = schermata_2>
@@ -52,26 +54,26 @@
         <div id = "load_room">LOAD ROOM
             <div id="internal_container_names" class="invisible-scrollbar"></div>
         </div>
+        <button id='button_draw' onclick = "open_editor()">CANCEL</button>
         <div id = info_container>
-            <button onclick = "open_editor()">CANCEL</button>
             <div> INSERT ROOM NAME</div>
             <input id=nome_stanza type = "text"></input>
-            <button onclick = "save_room()">SAVE</button>
-            <button onclick="render_schermata(0)">BACK</button>
+            <button id='button_draw' onclick = "save_room()">SAVE</button>
+            <button id='button_draw' onclick="render_schermata(0)">BACK</button>
             <br>REAL SOURCE
-            <button onclick = "click_source()">CLICK</button>
+            <button id='button_draw' onclick = "click_source()">CLICK</button>
             <div class=coord_container>
                 <input class="coord_input" type="text" id="RS_x_input"></input>
                 <input class="coord_input" type="text" id="RS_y_input"></input>
             </div>
             <br>RECEIVER
-            <button onclick="click_receiver()">CLICK</button>
+            <button id='button_draw' onclick="click_receiver()">CLICK</button>
             <div class=coord_container>
                 <input class="coord_input" type="text" id="R_x_input"></input>
                 <input class="coord_input" type="text" id="R_y_input"></input>
             </div>
             <br>LINEAR ARRAY
-            <button onclick="click_ULA()">CLICK</button>
+            <button id='button_draw' onclick="click_ULA()">CLICK</button>
             <div class=coord_container>
                 <input class="coord_input" type="text" id="ULA_x_input"></input>
                 <input class="coord_input" type="text" id="ULA_y_input"></input>
@@ -96,13 +98,18 @@
 <div class = schermata id = schermata_4>
     MICROPHONE ARRAY
     <div id='DAS'><!-- Plotly chart will be drawn inside this DIV --></div>
-    <button onclick="render_schermata(0)">BACK</button>
+    <div id='testing'>TESTING DIFFERENT METHOD:  
+    If you want to see a comparison between the 
+    DAS beamformer and MUSIC method click the link below.  
+    </div>
+    <a id='link' href="https://colab.research.google.com/github/geekmj/python-tutorials/blob/master/numpy-basics/save-array-to-file.ipynb">TEST DIFFERENT METHOD!</a>
+    <button class = "buttons" onclick="render_schermata(0)">BACK</button>
 </div>
 
 <div class = schermata id = schermata_5>
     DYNOSOURCE by Tyno and Orlandone <br>
     Stay minimal
-    <button onclick="render_schermata(0)">BACK</button>
+    <button class = "buttons" onclick="render_schermata(0)">BACK</button>
 </div>
 
 <div class = schermata id = schermata_6>
@@ -118,14 +125,17 @@
 </div>
 
 <div class = schermata id = schermata_7>
+    <div id='number_iter'>NUMBER OF ITERATION:
+        <input id=num_iter type = "number" min = "0" max="10"></input>
+        <button class='outbuttons' onclick=simulate();>SIMULATE</button>
+        <button class='outbuttons' onclick=fillChart()>CHART</button>
+        <button class='outbuttons' onclick=play_buffer()>PLAY IMPULSE RESPONSE</button>
+        <button class='outbuttons' onclick="render_schermata(0)">BACK</button>
+        <div id='T60container'></div>
+    </div>
     <div>
         <canvas id="delayChart"></canvas>
     </div>
-    <div id=T60container></div>
-    <button onclick=play_buffer()>PLAY IMPULSE RESPONSE</button>
-    <button onclick="elephant_input.play()">PLAY DINOSAUR ROAR</button>
-    <button onclick=convolve(0)>SIMULATE ACOUSTICS</button>
-    <button onclick="render_schermata(0)">BACK</button>
 </div>
 
 <img src= "source.png" class="dinos"></img>
@@ -136,7 +146,7 @@
 <img src= "source_water.png" class="dinos"></img>
 <img src= "source_yellow.png" class="dinos"></img>
 
-<audio  src="Dino.wav" id = elephant_input></audio>
+<audio  src="Dino.wav" id = dino_input></audio>
 <script src=https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.3.0/math.min.js></script>
 <script src="http://mlweb.loria.fr/lalolib.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
