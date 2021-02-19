@@ -1,4 +1,3 @@
-n_mic ula schermata draw
 questione colab
 pulire database e fare 5 room
 cambiare frequenza DAS
