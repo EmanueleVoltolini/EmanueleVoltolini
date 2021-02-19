@@ -101,17 +101,19 @@
 }
 #load_room{
     height : 145px;
-    width: 290px;
+    width: 150px;
 } 
 #internal_container_names{
-    height : 115px;
-    width: 300px;
+    height : 150px;
+    width: 225px;
+    overflow: hidden;
+    word-wrap: break-word;
     overflow-y : scroll;
     position: relative;
     display: block;
 }
 #room_name{
-    height : 20px;
+    height : auto;
     width: 185px;
     margin: 1px;
     position: relative;
@@ -230,4 +232,17 @@
     position:absolute;
     top: 32.5%;
     right: 12%;
+}
+#mic{
+    height: 25px;
+    width: 150px;
+    margin-top: 5px;
+    position: relative;
+}
+#num_mic{
+    height : 20px;
+    width: 50px;
+    position: relative;
+    border:2px solid #ccc;
+    border-radius: 10%;
 }

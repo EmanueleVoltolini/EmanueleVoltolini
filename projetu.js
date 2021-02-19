@@ -407,6 +407,7 @@ function open_editor(){//inizializzazioni all'apertura dell'editor
 	ULA_y_input.value = "ARRAY Y";
 	ULA_theta_input.value = "ANGLE";
 	ULA_a_input.value = "APERTURE";
+	num_mic.value = "10";
 	editor_status = 0;
 	N_iter = 0;
 	editor_FSM();
@@ -500,6 +501,7 @@ function save_room(){
 	my_ULA.y = grid.translate(editor_active_objects.ULA_x,editor_active_objects.ULA_y).y;
 	my_ULA.aperture = editor_active_objects.ULA_aperture/grid.size;
 	my_ULA.angle = editor_active_objects.ULA_angle;
+	my_ULA.N_mic = parseInt(num_mic.value);
 	if(isNaN(real_source[0]) || isNaN(real_source[1]) || isNaN(receiver.x) || isNaN(receiver.y) || isNaN(my_ULA.x)
 	 || isNaN(my_ULA.y) || isNaN(my_ULA.aperture) || isNaN(my_ULA.angle)){
 		alert("Please be shure to insert the SOURCE, RECEIVER and LINEAR ARRAY before save your room!");
