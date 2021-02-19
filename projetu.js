@@ -1152,6 +1152,7 @@ function save_audio_db(signal){
 	angle = Math.abs(angle) - Math.PI/2;
 	db.collection('aaa_Metadata').doc('Real Source Data').set({angle:angle,meter:my_room.meter});
 	db.collection('aaa_Metadata').doc('Sample_Rate').set({Fs:audioCtx.sampleRate});
+	db.collection('aaa_Metadata').doc('N_mic').set({N_mic : my_ULA.N_mic});
 	for (ke=0;ke<signal.length;ke++){
 		docname = 'audio' + ke;
 		db.collection('Audios').doc(docname);
