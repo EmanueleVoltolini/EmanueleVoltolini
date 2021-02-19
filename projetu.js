@@ -897,7 +897,7 @@ function fillChart(){
 	}
 	var ctx_chart = document.getElementById('delayChart').getContext('2d');  //create a ctx for the chart
 	var stepSize_xAxis = 0.0001; 
-	var max_xAxis = Math.max(reflections.delays) + 10*stepSize_xAxis;
+	var max_xAxis = Math.max.apply(null,reflections.delays) + 10*stepSize_xAxis;
 	var min_yAxis = 1e-4;
 	var chart_iter = max_xAxis/stepSize_xAxis + 1;
 	data_approx();							//approximation of the data in order to have a better visualization of the delays
