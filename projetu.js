@@ -1630,6 +1630,7 @@ Signals = new SignalsClass();
 
 function full_simulation_ULA(freq_ignored,duration,step_degrees){
 	N_iter = 5;
+	sound_velocity = 340/my_room.meter;
 	var ULA_d = my_ULA.aperture/(my_ULA.N_mic-1);
 	var freq = sound_velocity/(2*ULA_d);
 	var duration_pow_2 = Math.pow(2,Math.ceil(Math.log2(duration)));
